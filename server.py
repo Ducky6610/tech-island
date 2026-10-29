@@ -27,6 +27,7 @@ ALLOWED_STATIC_FILES = {
     "/index.html",
     "/style.css",
     "/app.js",
+    "/mqtt.min.js",
 } | {f"/data/ch{i:02d}.js" for i in range(1, 16)}
 
 ALLOWED_AVATARS = {

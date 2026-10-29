@@ -2736,6 +2736,83 @@ function renderLiveTickerUI() {
   peers.forEach((p, idx) => ensurePeer3D(p, idx));
 }
 
+// ==========================================
+// 跨裝置全網即時學伴同步（支援 GitHub Pages 靜態託管 ＆ 跨網真人連線）
+// ==========================================
+const MQTT_BROKERS = [
+  "wss://broker.emqx.io:8084/mqtt",
+  "wss://broker.hivemq.com:8884/mqtt"
+];
+const MQTT_TOPIC_PEERS = "tech-island/v1/ducky6610/peers";
+const MQTT_TOPIC_EVENTS = "tech-island/v1/ducky6610/events";
+
+let mqttClient = null;
+let currentBrokerIdx = 0;
+let isMqttConnected = false;
+
+function initRealtimeNetwork() {
+  if (typeof window.mqtt === "undefined") return;
+  const brokerUrl = MQTT_BROKERS[currentBrokerIdx % MQTT_BROKERS.length];
+  try {
+    const clientId = "ti_" + (gameState.myId || "u") + "_" + Math.random().toString(36).slice(2, 7);
+    mqttClient = window.mqtt.connect(brokerUrl, {
+      clientId,
+      clean: true,
+      connectTimeout: 5000,
+      reconnectPeriod: 5000,
+      keepalive: 25
+    });
+
+    mqttClient.on("connect", () => {
+      isMqttConnected = true;
+      mqttClient.subscribe([MQTT_TOPIC_PEERS, MQTT_TOPIC_EVENTS]);
+      broadcastActivity("加入了數位科技動態島！🎉", "全景探索中", selectedId || 1);
+    });
+
+    mqttClient.on("message", (topic, payload) => {
+      try {
+        const text = new TextDecoder().decode(payload);
+        const data = JSON.parse(text);
+        if (topic === MQTT_TOPIC_PEERS && data && data.id && data.id !== gameState.myId) {
+          const safePeer = sanitizePeerObject(data);
+          if (safePeer) {
+            remoteRealPeers.set(safePeer.id, safePeer);
+            renderLiveTickerUI();
+          }
+        } else if (topic === MQTT_TOPIC_EVENTS && data && data.text) {
+          pushFeedEvent(data);
+        }
+      } catch (_) {}
+    });
+
+    mqttClient.on("error", () => {
+      isMqttConnected = false;
+      currentBrokerIdx++;
+      try { mqttClient.end(true); } catch (_) {}
+      setTimeout(initRealtimeNetwork, 4000);
+    });
+
+    mqttClient.on("offline", () => {
+      isMqttConnected = false;
+    });
+  } catch (_) {}
+}
+
+initRealtimeNetwork();
+
+// 每 6 秒自動清理超過 20 秒未有心跳更新的離線學伴
+setInterval(() => {
+  const now = Date.now();
+  let changed = false;
+  remoteRealPeers.forEach((p, id) => {
+    if (now - (p.ts || 0) > 20000) {
+      remoteRealPeers.delete(id);
+      changed = true;
+    }
+  });
+  if (changed) renderLiveTickerUI();
+}, 6000);
+
 // 跨分頁 BroadcastChannel + 後端 /api/ping 雙重即時同步
 const bcChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("dt_island_live_v1") : null;
 if (bcChannel) {
@@ -2763,7 +2840,8 @@ async function broadcastActivity(eventText = null, newAction = null, chOverride 
     chId: curCh,
     action: myCurrentAction,
     stars: totalStars(),
-    lv: info.lv
+    lv: info.lv,
+    ts: Date.now()
   };
 
   let evObj = null;
@@ -2776,10 +2854,22 @@ async function broadcastActivity(eventText = null, newAction = null, chOverride 
     pushFeedEvent(evObj);
   }
 
+  // 1. MQTT 全球跨網即時廣播（GitHub Pages 跨裝置跨網路核心通道）
+  if (mqttClient && isMqttConnected) {
+    try {
+      mqttClient.publish(MQTT_TOPIC_PEERS, JSON.stringify(myPeerObj));
+      if (evObj) {
+        mqttClient.publish(MQTT_TOPIC_EVENTS, JSON.stringify(evObj));
+      }
+    } catch (_) {}
+  }
+
+  // 2. 本機同瀏覽器多分頁即時廣播
   if (bcChannel) {
     bcChannel.postMessage({ peer: myPeerObj, event: evObj });
   }
 
+  // 3. 本地／自架伺服器 /api/ping 回退支援
   try {
     const res = await fetch("/api/ping", {
       method: "POST",
@@ -2789,7 +2879,6 @@ async function broadcastActivity(eventText = null, newAction = null, chOverride 
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.peers)) {
-        remoteRealPeers.clear();
         data.peers.forEach(p => {
           if (p && p.id !== gameState.myId) {
             const safePeer = sanitizePeerObject(p);
@@ -2803,7 +2892,7 @@ async function broadcastActivity(eventText = null, newAction = null, chOverride 
       renderLiveTickerUI();
     }
   } catch (_) {
-    // 若使用純靜態伺服器無 /api/ping，仍透過 BroadcastChannel 與 AI 學伴正常運作
+    // 靜態伺服器無 /api/ping 時，由 MQTT 與 BroadcastChannel 順暢接手
   }
 }
 
