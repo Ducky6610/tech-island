@@ -62,6 +62,23 @@ button, input {
   overflow: hidden;
 }
 
+/* 桌面預設收合容器行為 */
+.topbar-collapsible {
+  display: contents;
+}
+
+.mobile-menu-toggle {
+  display: none !important;
+}
+
+.panel-drag-handle {
+  display: none;
+}
+
+#panel-size-toggle {
+  display: none;
+}
+
 /* 漂浮關卡路牌標籤（圓潤雲朵膠囊風，柔和無稜角） */
 .island-label {
   position: absolute;
@@ -2022,111 +2039,309 @@ button, input {
   }
 }
 
-/* 直向平板與手機 (<= 860px) */
+/* =====================================================
+   直向平板與智慧型手機版面優化 (<= 860px)
+   ===================================================== */
 @media (max-width: 860px) {
   html, body {
-    font-size: 16.5px;
+    font-size: 16px;
     touch-action: manipulation;
   }
 
-  /* 頂部導覽列改為緊湊兩行式或彈性折行，支援安全區域 */
+  /* 頂部導覽列：在手機上維持簡潔呼吸感單行 */
   #topbar {
     top: max(8px, env(safe-area-inset-top));
-    left: 10px;
-    right: 10px;
-    padding: 8px 14px;
+    left: 8px;
+    right: 8px;
+    padding: 6px 12px;
     gap: 8px;
-    border-radius: 28px;
+    border-radius: 999px;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* 手機端展開選單時的圓潤卡片外框 */
+  #topbar:has(.topbar-collapsible.open) {
+    border-radius: 28px;
+    background: rgba(255, 248, 252, 0.97);
+    box-shadow: 0 12px 36px rgba(180, 100, 140, 0.25);
   }
 
   .brand .logo {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    font-size: 21px;
+    font-size: 20px;
+  }
+
+  .brand p,
+  .brand h1 span {
+    display: none;
   }
 
   .brand h1 {
-    font-size: 16.5px;
-    gap: 5px;
+    font-size: 15.5px;
+    gap: 4px;
   }
 
   /* 勇者 HUD 精簡為小膠囊 */
   #player-hud {
-    padding: 4px 10px;
-    gap: 8px;
+    padding: 3px 9px;
+    gap: 6px;
     border-radius: 999px;
     margin-left: auto;
   }
 
   .avatar-ring {
-    width: 30px;
-    height: 30px;
-    font-size: 17px;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
   }
 
   .hud-info {
-    min-width: 92px;
+    min-width: 72px;
     gap: 2px;
   }
 
   .hud-level {
-    font-size: 11.5px;
-    padding: 1px 7px;
+    font-size: 11px;
+    padding: 1px 6px;
   }
 
   .hud-title {
-    font-size: 12.5px;
-    max-width: 95px;
+    display: none;
   }
 
   .xp-bar {
-    height: 12px;
+    height: 10px;
   }
 
   .xp-text {
-    font-size: 9.5px;
+    font-size: 9px;
   }
 
   .stat-pill {
-    padding: 3px 9px;
-    font-size: 12.5px;
+    padding: 2px 7px;
+    font-size: 12px;
   }
 
-  /* 搜尋與工具列佔滿第二行，觸控按鈕加大好點 */
+  .stat-pill.coin-pill,
+  .stat-pill.streak-pill {
+    display: none;
+  }
+
+  /* 手機專屬折疊選單按鈕 */
+  .mobile-menu-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 13.5px;
+    font-weight: 800;
+    border-radius: 999px;
+  }
+
+  /* 下拉收合區塊（搜尋 ＋ 工具按鈕） */
+  .topbar-collapsible {
+    display: none;
+    width: 100%;
+    order: 10;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1.5px solid var(--border-soft);
+    animation: dropInMenu 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes dropInMenu {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .topbar-collapsible.open {
+    display: flex;
+  }
+
   .search {
-    order: 3;
-    flex: 1 1 140px;
+    width: 100%;
     max-width: none;
   }
 
   #search {
-    padding: 8px 14px;
-    font-size: 14.5px;
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 15px;
   }
 
   .tools {
-    order: 4;
-    gap: 5px;
-    overflow-x: auto;
-    max-width: 100%;
-    padding-bottom: 2px;
-    scrollbar-width: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    width: 100%;
+    overflow: visible;
   }
 
-  .tools::-webkit-scrollbar {
+  .tools .candy-btn {
+    padding: 8px 6px;
+    font-size: 13.5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 16px;
+  }
+
+  .tools .candy-btn span {
+    display: inline;
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+
+  /* 底部學伴動態看板：在手機預設收合為精巧小膠囊 */
+  #live-ticker {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 8px;
+    width: auto;
+    max-width: 235px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    z-index: 35;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  #live-ticker .ticker-head {
+    cursor: pointer;
+    gap: 5px;
+    font-size: 12.5px;
+  }
+
+  #live-ticker.collapsed #ticker-body,
+  #live-ticker.collapsed #btn-edit-name {
     display: none;
   }
 
-  .candy-btn {
-    padding: 8px 12px;
-    font-size: 14.5px;
+  #btn-ticker-toggle {
+    margin-left: auto;
+    padding: 2px 7px;
     border-radius: 999px;
-    flex-shrink: 0;
+    border: 1px solid var(--border-soft);
+    background: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ink-sub);
+    cursor: pointer;
+    transition: transform 0.2s;
   }
 
-  /* 直向平板與手機：教學任務面板改為置中底部上滑抽屜（Bottom Sheet），直向平板兩側留白更優雅 */
+  #live-ticker.collapsed #btn-ticker-toggle {
+    transform: rotate(180deg);
+  }
+
+  #live-ticker:not(.collapsed) {
+    width: min(320px, calc(100vw - 16px));
+    padding: 12px 14px;
+    border-radius: 26px;
+    bottom: 56px;
+    box-shadow: 0 10px 30px rgba(180, 100, 140, 0.28);
+  }
+
+  #live-ticker:not(.collapsed) #ticker-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ticker-toast {
+    font-size: 11px;
+    color: #be185d;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 105px;
+  }
+
+  /* 底部時間控制列：手機端預設為精巧時間小膠囊 */
+  #timebar {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: auto;
+    right: 8px;
+    transform: none;
+    padding: 7px 12px;
+    border-radius: 999px;
+    z-index: 35;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  #timebar .clock {
+    cursor: pointer;
+    gap: 5px;
+    font-size: 13px;
+  }
+
+  .timebar-arrow {
+    font-size: 11px;
+    color: var(--ink-sub);
+    transition: transform 0.2s;
+  }
+
+  #timebar.collapsed .timebar-arrow {
+    transform: rotate(180deg);
+  }
+
+  #timebar.collapsed .timebar-body {
+    display: none;
+  }
+
+  #timebar:not(.collapsed) {
+    right: 8px;
+    bottom: 56px;
+    width: min(285px, calc(100vw - 16px));
+    padding: 12px 15px;
+    border-radius: 24px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    box-shadow: 0 10px 30px rgba(180, 100, 140, 0.28);
+  }
+
+  #timebar:not(.collapsed) .timebar-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #timebar:not(.collapsed) .presets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+
+  #timebar:not(.collapsed) .presets button {
+    padding: 6px;
+    font-size: 11.5px;
+  }
+
+  /* 當學生手指在 3D 場景旋轉探索時，周圍按鈕自動變淡，提供無遮擋 3D 全景體驗 */
+  body.touch-exploring #topbar,
+  body.touch-exploring #live-ticker,
+  body.touch-exploring #timebar {
+    opacity: 0.18;
+    pointer-events: none;
+    transition: opacity 0.18s;
+  }
+
+  /* 直向平板與手機：教學任務面板改為置中底部上滑抽屜（Bottom Sheet） */
   #panel {
     top: auto;
     left: 50%;
@@ -2139,6 +2354,43 @@ button, input {
     border-radius: 32px 32px 0 0;
     border-bottom: none;
     box-shadow: 0 -12px 38px rgba(160, 85, 120, 0.25);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.25s ease;
+  }
+
+  #panel.fullscreen {
+    height: 94dvh !important;
+    max-height: 96vh !important;
+  }
+
+  .panel-drag-handle {
+    display: block;
+    width: 44px;
+    height: 5px;
+    border-radius: 999px;
+    background: #f9a8d4;
+    margin: 8px auto 0;
+    cursor: pointer;
+  }
+
+  #panel-size-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 13.5px;
+    border-radius: 999px;
+  }
+
+  /* 當開啟關卡任務抽屜時，所有浮動小工具 100% 完全自動隱藏，讓出整面螢幕給學生閱讀 */
+  body.panel-open #live-ticker,
+  body.panel-open #timebar {
+    display: none !important;
+  }
+
+  body.panel-open #topbar {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
   }
 
   #panel.hidden {
@@ -2147,41 +2399,41 @@ button, input {
   }
 
   .panel-header {
-    padding: 14px 18px 12px;
+    padding: 10px 18px 10px;
   }
 
   .panel-top-row {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .unit-pill {
-    font-size: 12.5px;
-    padding: 4px 10px;
+    font-size: 12px;
+    padding: 3px 9px;
   }
 
   .panel-nav-btns button {
-    padding: 6px 12px;
-    font-size: 13.5px;
+    padding: 5px 10px;
+    font-size: 13px;
   }
 
   .panel-title {
-    font-size: 20px;
-    gap: 7px;
+    font-size: 18.5px;
+    gap: 6px;
   }
 
   .stage-stars-box {
-    font-size: 15px;
-    padding: 4px 10px;
+    font-size: 14px;
+    padding: 3px 9px;
   }
 
   .panel-summary {
-    font-size: 14.5px;
-    line-height: 1.55;
-    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: 4px;
   }
 
   .panel-tabs {
-    padding: 9px 14px;
+    padding: 8px 12px;
     gap: 6px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -2192,21 +2444,21 @@ button, input {
   }
 
   .tab-btn {
-    padding: 9px 12px;
-    font-size: 14px;
+    padding: 8px 11px;
+    font-size: 13.5px;
     white-space: nowrap;
     flex: 1 0 auto;
   }
 
   .panel-body {
-    padding: 16px 18px max(28px, env(safe-area-inset-bottom));
-    gap: 14px;
+    padding: 14px 16px max(28px, env(safe-area-inset-bottom));
+    gap: 12px;
     -webkit-overflow-scrolling: touch;
   }
 
   .section-stepper {
-    padding: 9px 12px;
-    gap: 8px;
+    padding: 8px 10px;
+    gap: 6px;
   }
 
   .stepper-pills {
@@ -2222,42 +2474,59 @@ button, input {
   }
 
   .step-pill {
-    padding: 7px 13px;
-    font-size: 14px;
+    padding: 6px 11px;
+    font-size: 13.5px;
     white-space: nowrap;
     flex-shrink: 0;
   }
 
   .section-card {
-    padding: 18px 16px;
-    border-radius: 24px;
+    padding: 16px 14px;
+    border-radius: 22px;
   }
 
   .section-card-head {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 14px;
-    padding-bottom: 12px;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
   }
 
   .section-card h3 {
-    font-size: 18.5px;
+    font-size: 17.5px;
     line-height: 1.4;
   }
 
   .check-read-btn {
     align-self: stretch;
     text-align: center;
-    padding: 10px 14px;
-    font-size: 15px;
+    padding: 9px 12px;
+    font-size: 14.5px;
   }
 
   .section-points {
-    gap: 12px;
+    gap: 10px;
   }
 
   .section-points li {
+    font-size: 15.5px;
+    padding: 14px 16px 14px 42px;
+    line-height: 1.7;
+    border-radius: 20px;
+  }
+}
+
+/* 超窄螢幕 (<= 400px) */
+@media (max-width: 400px) {
+  .tools {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tools .candy-btn {
+    flex-direction: row;
+    padding: 8px;
+  }
+}
     padding: 14px 15px 14px 38px;
     font-size: 16.5px;
     line-height: 1.8;

@@ -1125,6 +1125,7 @@ function selectIsland(chId, initialTab = null) {
 
 function closePanel() {
   selectedId = null;
+  panelEl.classList.remove("fullscreen");
   panelEl.classList.add("hidden");
   updateIslandHighlights();
 }
@@ -1314,10 +1315,12 @@ function renderPanel(chId) {
   const nextId = chId < 15 ? chId + 1 : 1;
 
   panelEl.innerHTML = `
+    <div class="panel-drag-handle" id="panel-drag-handle" title="按住可切換全螢幕或抽屜模式"></div>
     <div class="panel-header">
       <div class="panel-top-row">
         <span class="unit-pill"><span class="unit-dot" style="background:${unit.color}"></span>${unit.code} · ${unit.name}</span>
         <div class="panel-nav-btns">
+          <button id="panel-size-toggle" title="切換全螢幕/抽屜模式">⤢</button>
           <button id="panel-prev" title="上一關">◀ 關卡 ${prevId}</button>
           <button id="panel-next" title="下一關">關卡 ${nextId} ▶</button>
           <button id="panel-close" title="關閉（Esc）">✕</button>
@@ -1340,6 +1343,16 @@ function renderPanel(chId) {
     </div>
     <div class="panel-body">${bodyHTML}</div>
   `;
+
+  const sizeBtn = panelEl.querySelector("#panel-size-toggle");
+  const dragHandle = panelEl.querySelector("#panel-drag-handle");
+  const togglePanelSize = () => {
+    playSfx("pop");
+    const isFull = panelEl.classList.toggle("fullscreen");
+    if (sizeBtn) sizeBtn.textContent = isFull ? "⤡" : "⤢";
+  };
+  if (sizeBtn) sizeBtn.addEventListener("click", togglePanelSize);
+  if (dragHandle) dragHandle.addEventListener("click", togglePanelSize);
 
   panelEl.querySelector("#panel-close").addEventListener("click", () => {
     playSfx("pop");
@@ -2652,13 +2665,28 @@ function pushFeedEvent(ev) {
     chId: Math.max(1, Math.min(15, Number(ev.chId) || 1))
   });
   if (activityFeedList.length > 12) activityFeedList.pop();
+
+  // 手機版收合狀態時，在膠囊上跳出微型提示氣泡 3.5 秒
+  const toastEl = document.getElementById("ticker-toast");
+  if (toastEl) {
+    toastEl.textContent = safeText;
+    toastEl.classList.remove("hidden");
+    clearTimeout(toastEl._timer);
+    toastEl._timer = setTimeout(() => {
+      toastEl.classList.add("hidden");
+    }, 3500);
+  }
+
   renderLiveTickerUI();
 }
 
 function renderLiveTickerUI() {
   const peers = getAllActivePeers();
+  const totalCount = peers.length + 1; // +1 包含自己
   const onlineEl = document.getElementById("online-count");
-  if (onlineEl) onlineEl.textContent = String(peers.length + 1); // +1 包含自己
+  if (onlineEl) onlineEl.textContent = String(totalCount);
+  const miniCountEl = document.getElementById("ticker-mini-count");
+  if (miniCountEl) miniCountEl.textContent = `(${totalCount}人)`;
 
   const feedEl = document.getElementById("ticker-feed");
   if (feedEl) {
@@ -3053,7 +3081,56 @@ if (btnPeers) {
 
 const btnEditName = document.getElementById("btn-edit-name");
 if (btnEditName) {
-  btnEditName.addEventListener("click", () => openNameProfileModal(false));
+  btnEditName.addEventListener("click", e => {
+    e.stopPropagation();
+    openNameProfileModal(false);
+  });
+}
+
+// 手機端導覽列折疊選單 ☰
+const btnMobileToggle = document.getElementById("btn-mobile-toggle");
+const topbarCollapsible = document.getElementById("topbar-collapsible");
+if (btnMobileToggle && topbarCollapsible) {
+  btnMobileToggle.addEventListener("click", e => {
+    e.stopPropagation();
+    playSfx("pop");
+    const isOpen = topbarCollapsible.classList.toggle("open");
+    const icon = btnMobileToggle.querySelector(".m-icon");
+    if (icon) icon.textContent = isOpen ? "✕" : "☰";
+  });
+}
+
+// 點擊頂部以外區域時自動收合手機選單
+document.addEventListener("click", e => {
+  if (!e.target.closest("#topbar")) {
+    if (topbarCollapsible && topbarCollapsible.classList.contains("open")) {
+      topbarCollapsible.classList.remove("open");
+      if (btnMobileToggle) {
+        const icon = btnMobileToggle.querySelector(".m-icon");
+        if (icon) icon.textContent = "☰";
+      }
+    }
+  }
+});
+
+// 手機端學伴看板點擊展開／收合
+const tickerHead = document.getElementById("ticker-head");
+if (tickerHead && liveTickerEl) {
+  tickerHead.addEventListener("click", e => {
+    if (e.target.closest("#btn-edit-name")) return;
+    playSfx("pop");
+    liveTickerEl.classList.toggle("collapsed");
+  });
+}
+
+// 手機端時間控制器點擊展開／收合
+const timebarEl = document.getElementById("timebar");
+const timebarToggle = document.getElementById("timebar-toggle");
+if (timebarToggle && timebarEl) {
+  timebarToggle.addEventListener("click", () => {
+    playSfx("pop");
+    timebarEl.classList.toggle("collapsed");
+  });
 }
 
 // ==========================================
@@ -3120,6 +3197,30 @@ modeFlowBtn.addEventListener("click", () => {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let downPos = { x: 0, y: 0 };
+
+// 手機端觸控探索 3D 小島時，自動淡化按鈕並自動收合浮動視窗
+renderer.domElement.addEventListener("touchstart", () => {
+  document.body.classList.add("touch-exploring");
+  if (topbarCollapsible && topbarCollapsible.classList.contains("open")) {
+    topbarCollapsible.classList.remove("open");
+    if (btnMobileToggle) {
+      const icon = btnMobileToggle.querySelector(".m-icon");
+      if (icon) icon.textContent = "☰";
+    }
+  }
+  if (window.innerWidth <= 768) {
+    if (liveTickerEl) liveTickerEl.classList.add("collapsed");
+    if (timebarEl) timebarEl.classList.add("collapsed");
+  }
+}, { passive: true });
+
+renderer.domElement.addEventListener("touchend", () => {
+  document.body.classList.remove("touch-exploring");
+}, { passive: true });
+
+renderer.domElement.addEventListener("touchcancel", () => {
+  document.body.classList.remove("touch-exploring");
+}, { passive: true });
 
 renderer.domElement.addEventListener("pointerdown", e => {
   downPos = { x: e.clientX, y: e.clientY };

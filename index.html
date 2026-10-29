@@ -50,21 +50,28 @@
       </div>
     </div>
 
-    <div class="search">
-      <input id="search" type="search" autocomplete="off" placeholder="🔍 搜尋寶藏知識（如：CPU、OSI、IP）…" />
-      <div id="search-results" class="hidden"></div>
-    </div>
+    <!-- 手機端展開/收合選單按鈕 -->
+    <button id="btn-mobile-toggle" class="candy-btn pink mobile-menu-toggle" aria-label="切換選單">
+      <span class="m-icon">☰</span><span>選單</span>
+    </button>
 
-    <nav class="tools">
-      <button id="btn-overview" class="candy-btn blue" title="全景視角（H）">🧭<span>全景</span></button>
-      <button id="btn-peers" class="candy-btn orange on" title="島上即時學伴動態（P）">👥<span>學伴</span> <b id="online-count">5</b></button>
-      <button id="btn-list" class="candy-btn purple" title="冒險地圖清單（L）">🗺️<span>地圖冊</span></button>
-      <button id="btn-badges" class="candy-btn yellow" title="成就徽章館與跨裝置進度存檔（B）">🏆<span>徽章·存檔</span></button>
-      <button id="btn-quiz" class="candy-btn pink pulse-btn" title="隨機魔王挑戰賽（Q）">⚔️<span>魔王戰</span></button>
-      <button id="btn-tour" class="candy-btn green" title="自動巡島導覽（T）">🚂<span>巡島號</span></button>
-      <button id="btn-links" class="candy-btn teal on" title="顯示／隱藏彩虹協作橋">🌈<span>彩虹橋</span></button>
-      <button id="btn-sound" class="candy-btn orange on" title="切換闖關音效">🔊</button>
-    </nav>
+    <div class="topbar-collapsible" id="topbar-collapsible">
+      <div class="search">
+        <input id="search" type="search" autocomplete="off" placeholder="🔍 搜尋寶藏知識（如：CPU、OSI、IP）…" />
+        <div id="search-results" class="hidden"></div>
+      </div>
+
+      <nav class="tools">
+        <button id="btn-overview" class="candy-btn blue" title="全景視角（H）">🧭<span>全景</span></button>
+        <button id="btn-peers" class="candy-btn orange on" title="島上即時學伴動態（P）">👥<span>學伴</span> <b id="online-count">5</b></button>
+        <button id="btn-list" class="candy-btn purple" title="冒險地圖清單（L）">🗺️<span>地圖冊</span></button>
+        <button id="btn-badges" class="candy-btn yellow" title="成就徽章館與跨裝置進度存檔（B）">🏆<span>徽章·存檔</span></button>
+        <button id="btn-quiz" class="candy-btn pink pulse-btn" title="隨機魔王挑戰賽（Q）">⚔️<span>魔王戰</span></button>
+        <button id="btn-tour" class="candy-btn green" title="自動巡島導覽（T）">🚂<span>巡島號</span></button>
+        <button id="btn-links" class="candy-btn teal on" title="顯示／隱藏彩虹協作橋">🌈<span>彩虹橋</span></button>
+        <button id="btn-sound" class="candy-btn orange on" title="切換闖關音效">🔊</button>
+      </nav>
+    </div>
   </header>
 
   <aside id="legend">
@@ -74,29 +81,41 @@
     <div id="progress"></div>
   </aside>
 
-  <!-- 島上其他使用者即時動態看板 -->
-  <div id="live-ticker" aria-live="polite">
-    <div class="ticker-head">
+  <!-- 島上其他使用者即時動態看板（手機端支援迷你膠囊自動收合） -->
+  <div id="live-ticker" class="collapsed" aria-live="polite">
+    <div class="ticker-head" id="ticker-head" title="點擊展開／收起學伴動態">
       <span class="live-dot"></span>
-      <span>📡 島上學伴即時動態</span>
+      <span class="ticker-title-text">📡 學伴動態 <b id="ticker-mini-count">(5人)</b></span>
+      <span id="ticker-toast" class="ticker-toast hidden"></span>
+      <button id="btn-ticker-toggle" class="candy-btn-mini" title="展開或收起">▾</button>
       <button id="btn-edit-name" title="修改我的暱稱">✏️ 改名</button>
     </div>
-    <div id="ticker-feed"></div>
-    <div id="peer-avatars-bar"></div>
+    <div id="ticker-body">
+      <div id="ticker-feed"></div>
+      <div id="peer-avatars-bar"></div>
+    </div>
   </div>
 
-  <div id="timebar">
-    <div class="clock"><span id="clock-icon">☀️</span><b id="clock-time">12:00</b><small id="clock-label">晴朗白天</small></div>
-    <div class="presets">
-      <button data-t="6">🌅 蜜桃晨光</button>
-      <button data-t="12">☀️ 蘇打白天</button>
-      <button data-t="17.6">🌇 橘子黃昏</button>
-      <button data-t="21">🌙 螢光星夜</button>
+  <!-- 夢幻時間軸（手機端支援迷你時鐘膠囊收合） -->
+  <div id="timebar" class="collapsed">
+    <div class="clock" id="timebar-toggle" title="點擊展開／收起時間控制器">
+      <span id="clock-icon">☀️</span>
+      <b id="clock-time">12:00</b>
+      <small id="clock-label">晴朗白天</small>
+      <span class="timebar-arrow">▾</span>
     </div>
-    <input type="range" id="time-slider" min="0" max="24" step="0.05" value="12" aria-label="時間" />
-    <div class="modes">
-      <button id="mode-real" title="依照現在時間變化">🕒 即時</button>
-      <button id="mode-flow" title="快速流轉一天">⏩ 奇幻流轉</button>
+    <div class="timebar-body">
+      <div class="presets">
+        <button data-t="6">🌅 蜜桃晨光</button>
+        <button data-t="12">☀️ 蘇打白天</button>
+        <button data-t="17.6">🌇 橘子黃昏</button>
+        <button data-t="21">🌙 螢光星夜</button>
+      </div>
+      <input type="range" id="time-slider" min="0" max="24" step="0.05" value="12" aria-label="時間" />
+      <div class="modes">
+        <button id="mode-real" title="依照現在時間變化">🕒 即時</button>
+        <button id="mode-flow" title="快速流轉一天">⏩ 奇幻流轉</button>
+      </div>
     </div>
   </div>
 
