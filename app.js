@@ -2,31 +2,31 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // ==========================================
-// 1. 四大王國、15 座關卡島座標與 20 條彩虹協作橋
+// 1. 四大主題城區、15 座主題機關建築座標與 20 條城市協作幹道
 // ==========================================
 const UNITS = [
-  { id: 1, code: "王國 01", name: "數位概念森林", color: "#34d399", hex: 0x6ee7b7, rim: 0x10b981, chapters: [1, 2] },
-  { id: 2, code: "王國 02", name: "系統平台機械城", color: "#60a5fa", hex: 0x93c5fd, rim: 0x3b82f6, chapters: [3, 4, 5] },
-  { id: 3, code: "王國 03", name: "軟體魔法樂園", color: "#f59e0b", hex: 0xfde047, rim: 0xd97706, chapters: [6, 7, 8, 9, 10] },
-  { id: 4, code: "王國 04", name: "通訊網路星系", color: "#ec4899", hex: 0xf9a8d4, rim: 0xdb2777, chapters: [11, 12, 13, 14, 15] }
+  { id: 1, code: "城區 01", name: "數位概念市政區", color: "#34d399", hex: 0x6ee7b7, rim: 0x10b981, chapters: [1, 2] },
+  { id: 2, code: "城區 02", name: "系統硬體科技園區", color: "#60a5fa", hex: 0x93c5fd, rim: 0x3b82f6, chapters: [3, 4, 5] },
+  { id: 3, code: "城區 03", name: "軟體文創與智財特區", color: "#f59e0b", hex: 0xfde047, rim: 0xd97706, chapters: [6, 7, 8, 9, 10] },
+  { id: 4, code: "城區 04", name: "通訊網路樞紐特區", color: "#ec4899", hex: 0xf9a8d4, rim: 0xdb2777, chapters: [11, 12, 13, 14, 15] }
 ];
 
 const ISLAND_LAYOUT = [
-  { id: 1, unit: 1, q: 0, r: 0, skyY: 4.2 },
-  { id: 2, unit: 1, q: 1, r: -1, skyY: 5.4 },
-  { id: 3, unit: 2, q: -1, r: 0, skyY: 3.1 },
-  { id: 4, unit: 2, q: 0, r: -1, skyY: 6.2 },
-  { id: 5, unit: 2, q: -1, r: -1, skyY: 4.8 },
-  { id: 6, unit: 3, q: -2, r: 1, skyY: 3.6 },
-  { id: 7, unit: 3, q: -1, r: 1, skyY: 5.1 },
-  { id: 8, unit: 3, q: -2, r: 0, skyY: 6.0 },
-  { id: 9, unit: 3, q: -1, r: 2, skyY: 2.6 },
-  { id: 10, unit: 3, q: 0, r: 1, skyY: 3.8 },
-  { id: 11, unit: 4, q: 1, r: 0, skyY: 5.6 },
-  { id: 12, unit: 4, q: 2, r: -1, skyY: 6.6 },
-  { id: 13, unit: 4, q: 1, r: 1, skyY: 4.4 },
-  { id: 14, unit: 4, q: 2, r: 0, skyY: 3.3 },
-  { id: 15, unit: 4, q: 0, r: 2, skyY: 5.0 }
+  { id: 1, unit: 1, q: 0, r: 0, skyY: 0, bIcon: "🏛️", bName: "數位科技博物館", signText: "數位科技博物館" },
+  { id: 2, unit: 1, q: 1, r: -1, skyY: 0, bIcon: "🏦", bName: "二進位編碼資料銀行", signText: "二進位資料銀行" },
+  { id: 3, unit: 2, q: -1, r: 0, skyY: 0, bIcon: "🏭", bName: "半導體晶圓科技廠", signText: "半導體晶圓科技廠" },
+  { id: 4, unit: 2, q: 0, r: -1, skyY: 0, bIcon: "🏢", bName: "雲端運算系統大樓", signText: "雲端運算系統大樓" },
+  { id: 5, unit: 2, q: -1, r: -1, skyY: 0, bIcon: "🧪", bName: "AI 量子研發總部", signText: "AI 量子研發總部" },
+  { id: 6, unit: 3, q: -2, r: 1, skyY: 0, bIcon: "🎬", bName: "數位多媒體文創大樓", signText: "數位多媒體文創館" },
+  { id: 7, unit: 3, q: -1, r: 1, skyY: 0, bIcon: "🏟️", bName: "電競網際娛樂巨蛋", signText: "電競網際娛樂巨蛋" },
+  { id: 8, unit: 3, q: -2, r: 0, skyY: 0, bIcon: "💻", bName: "軟體工程創客學院", signText: "軟體工程創客學院" },
+  { id: 9, unit: 3, q: -1, r: 2, skyY: 0, bIcon: "🏬", bName: "行動 App 商城中心", signText: "行動 App 商城中心" },
+  { id: 10, unit: 3, q: 0, r: 1, skyY: 0, bIcon: "⚖️", bName: "智慧財產管理局", signText: "智慧財產管理局" },
+  { id: 11, unit: 4, q: 1, r: 0, skyY: 0, bIcon: "📡", bName: "電信通訊衛星總局", signText: "電信通訊衛星總局" },
+  { id: 12, unit: 4, q: 2, r: -1, skyY: 0, bIcon: "🖧", bName: "光纖路由機房中心", signText: "光纖路由機房中心" },
+  { id: 13, unit: 4, q: 1, r: 1, skyY: 0, bIcon: "🚉", bName: "網路拓樸轉運總站", signText: "網路拓樸轉運總站" },
+  { id: 14, unit: 4, q: 2, r: 0, skyY: 0, bIcon: "🗼", bName: "OSI 七層協定摩天塔", signText: "OSI 協定摩天塔" },
+  { id: 15, unit: 4, q: 0, r: 2, skyY: 0, bIcon: "🧭", bName: "DNS 網域導航總署", signText: "DNS 網域導航總署" }
 ];
 
 const COLLAB_LINKS = [
@@ -66,25 +66,25 @@ const LEVEL_TITLES = [
 
 // 10 大成就徽章定義
 const BADGES = [
-  { id: "first_island", icon: "🧭", name: "初登寶島", desc: "探索任意第 1 座知識島嶼", check: s => Object.keys(s.visited).length >= 1 },
-  { id: "first_star", icon: "⭐", name: "首顆星光", desc: "在任一關卡獲得至少 1 顆星", check: s => totalStars(s) >= 1 },
-  { id: "three_star", icon: "👑", name: "三星滿貫王", desc: "在任一關卡測驗全對奪得 3 顆星", check: s => Object.values(s.stars).some(v => v >= 3) },
+  { id: "first_island", icon: "🧭", name: "初訪科技城", desc: "造訪任意第 1 座主題建築", check: s => Object.keys(s.visited).length >= 1 },
+  { id: "first_star", icon: "⭐", name: "首顆星光", desc: "在任一建築關卡獲得至少 1 顆星", check: s => totalStars(s) >= 1 },
+  { id: "three_star", icon: "👑", name: "三星滿貫王", desc: "在任一建築關卡測驗全對奪得 3 顆星", check: s => Object.values(s.stars).some(v => v >= 3) },
   { id: "streak_5", icon: "🔥", name: "五連勝學霸", desc: "答題連續答對達 5 題以上", check: s => s.bestStreak >= 5 },
-  { id: "unit1_clear", icon: "🌲", name: "概念森林守護者", desc: "完成王國 01（Ch1~2）所有關卡奪星", check: s => [1, 2].every(i => (s.stars[i] || 0) >= 1) },
-  { id: "unit2_clear", icon: "⚙️", name: "系統機械大師", desc: "完成王國 02（Ch3~5）所有關卡奪星", check: s => [3, 4, 5].every(i => (s.stars[i] || 0) >= 1) },
-  { id: "unit3_clear", icon: "🪄", name: "軟體魔法達人", desc: "完成王國 03（Ch6~10）所有關卡奪星", check: s => [6, 7, 8, 9, 10].every(i => (s.stars[i] || 0) >= 1) },
-  { id: "unit4_clear", icon: "🛸", name: "網路星系艦長", desc: "完成王國 04（Ch11~15）所有關卡奪星", check: s => [11, 12, 13, 14, 15].every(i => (s.stars[i] || 0) >= 1) },
+  { id: "unit1_clear", icon: "🏛️", name: "市政區榮譽市民", desc: "完成城區 01（Ch1~2）所有關卡奪星", check: s => [1, 2].every(i => (s.stars[i] || 0) >= 1) },
+  { id: "unit2_clear", icon: "⚙️", name: "科技園區總工程師", desc: "完成城區 02（Ch3~5）所有關卡奪星", check: s => [3, 4, 5].every(i => (s.stars[i] || 0) >= 1) },
+  { id: "unit3_clear", icon: "⚖️", name: "文創智財特使", desc: "完成城區 03（Ch6~10）所有關卡奪星", check: s => [6, 7, 8, 9, 10].every(i => (s.stars[i] || 0) >= 1) },
+  { id: "unit4_clear", icon: "📡", name: "網路樞紐總指揮", desc: "完成城區 04（Ch11~15）所有關卡奪星", check: s => [11, 12, 13, 14, 15].every(i => (s.stars[i] || 0) >= 1) },
   { id: "card_collector", icon: "🃏", name: "圖鑑收集狂", desc: "在小辭典累積點亮 15 張以上魔法名詞卡", check: s => Object.keys(s.masteredTerms).length >= 15 },
-  { id: "grand_master", icon: "🏆", name: "數位科技傳奇勇者", desc: "全島累積達 30 顆星以上", check: s => totalStars(s) >= 30 }
+  { id: "grand_master", icon: "🏆", name: "數位科技傳奇市長", desc: "全城累積達 30 顆星以上", check: s => totalStars(s) >= 30 }
 ];
 
 const MASCOT_QUIPS = [
-  "嗨！我是 Bit 博士 🤓 每座島都有 3 顆星⭐⭐⭐等你拿，全對還會在島上升起黃金皇冠喔！",
+  "嗨！我是 Bit 博士 🤓 歡迎來到「數位科技智慧城市」！每棟主題建築都有 3 顆星⭐⭐⭐等你拿喔！",
+  "看到第 10 關的「⚖️ 智慧財產管理局」了嗎？裡面有統測必考的著作權、專利權與創用 CC 授權！",
   "點開「📖 知識寶箱」讀完重點按『領取 +15 XP』，經驗值升級超快！",
   "統測必考秘訣：GIGO 是「垃圾進、垃圾出」，輸入正確資料才有正確資訊！",
   "想刺激一下嗎？點右上角粉紅色的「⚔️ 魔王戰」，打敗數位魔王贏取大把金幣 💰！",
-  "試試底部的「🌅 蜜桃晨光 / ☀️ 蘇打白天 / 🌇 橘子黃昏 / 🌙 螢光星夜」，小島顏色超夢幻！",
-  "知道嗎？SJF（最短工作優先）排程平均等待時間最短；優先排程則要小心「飢餓現象」喔！"
+  "試試底部的「🌅 蜜桃晨光 / ☀️ 蘇打白天 / 🌇 橘子黃昏 / 🌙 螢光星夜」，城市建築的霓虹招牌超美喔！"
 ];
 
 // ==========================================
@@ -402,16 +402,56 @@ const waterMat = new THREE.MeshStandardMaterial({
   flatShading: false
 });
 const waterMesh = new THREE.Mesh(waterGeo, waterMat);
-// 將底層海洋下移至高空雲海下方，烘托 15 座漂浮空島懸浮於天際的立體感
-waterMesh.position.y = -11.5;
+// 外圍港灣海洋環繞著整座數位科技智慧城市半島
+waterMesh.position.y = -2.25;
 waterMesh.receiveShadow = true;
 scene.add(waterMesh);
 
-// 圓潤蓬鬆棉花糖白雲（分佈於空島下方雲海與高空天際，營造穿梭雲端的天空之城氛圍）
+// 建立「數位科技智慧城市」大型綠意陸地基座、濱海堤岸與中央環城大道
+const cityGroundGroup = new THREE.Group();
+{
+  const harborWall = new THREE.Mesh(
+    new THREE.CylinderGeometry(64, 67, 2.2, 64),
+    new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.55 })
+  );
+  harborWall.position.set(-2, -1.15, 3);
+  harborWall.receiveShadow = true;
+  cityGroundGroup.add(harborWall);
+
+  const cityLawn = new THREE.Mesh(
+    new THREE.CylinderGeometry(62.5, 64, 0.52, 64),
+    new THREE.MeshStandardMaterial({ color: 0xb7e4c7, roughness: 0.58 })
+  );
+  cityLawn.position.set(-2, -0.18, 3);
+  cityLawn.receiveShadow = true;
+  cityGroundGroup.add(cityLawn);
+
+  // 城市中央圓環大道與外環林蔭道
+  const innerRingRoad = new THREE.Mesh(
+    new THREE.RingGeometry(16.2, 19.2, 64),
+    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.65, side: THREE.DoubleSide })
+  );
+  innerRingRoad.rotation.x = -Math.PI / 2;
+  innerRingRoad.position.set(0, 0.09, 0);
+  innerRingRoad.receiveShadow = true;
+  cityGroundGroup.add(innerRingRoad);
+
+  const outerRingRoad = new THREE.Mesh(
+    new THREE.RingGeometry(33.5, 36.2, 64),
+    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.65, side: THREE.DoubleSide })
+  );
+  outerRingRoad.rotation.x = -Math.PI / 2;
+  outerRingRoad.position.set(-2, 0.09, 3);
+  outerRingRoad.receiveShadow = true;
+  cityGroundGroup.add(outerRingRoad);
+}
+scene.add(cityGroundGroup);
+
+// 圓潤蓬鬆棉花糖白雲（漂浮於智慧城市天際線上方）
 const skyClouds = [];
 const cloudWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, flatShading: false });
 const cloudSoftPinkMat = new THREE.MeshStandardMaterial({ color: 0xfff0f6, roughness: 0.45, flatShading: false });
-for (let i = 0; i < 24; i++) {
+for (let i = 0; i < 16; i++) {
   const cg = new THREE.Group();
   const cMat = i % 3 === 0 ? cloudSoftPinkMat : cloudWhiteMat;
   const p1 = new THREE.Mesh(new THREE.SphereGeometry(2.2, 24, 24), cMat);
@@ -424,15 +464,12 @@ for (let i = 0; i < 24; i++) {
   p4.position.set(0.3, 0.55, 0.65);
   cg.add(p1, p2, p3, p4);
 
-  const isLowCloud = i < 14; // 前 14 朵漂浮在空島下方與島際之間，形成立體雲海
-  const ang = (i / (isLowCloud ? 14 : 10)) * Math.PI * 2 + (isLowCloud ? 0 : 0.4);
-  const rad = isLowCloud ? 14 + (i % 5) * 9.5 : 50 + (i % 3) * 12;
-  const baseY = isLowCloud ? -4.2 + (i % 4) * 1.65 : 13 + (i % 4) * 3.2;
-  const s = isLowCloud ? 0.78 + (i % 3) * 0.18 : 1.05;
-  cg.scale.set(s, s, s);
+  const ang = (i / 16) * Math.PI * 2;
+  const rad = 52 + (i % 4) * 9;
+  const baseY = 14 + (i % 4) * 2.8;
   cg.position.set(Math.cos(ang) * rad, baseY, Math.sin(ang) * rad);
   scene.add(cg);
-  skyClouds.push({ mesh: cg, ang, rad, speed: (isLowCloud ? 0.018 : 0.025) + (i % 3) * 0.006, baseY });
+  skyClouds.push({ mesh: cg, ang, rad, speed: 0.018 + (i % 3) * 0.005, baseY });
 }
 
 // 星空粒子
@@ -453,10 +490,10 @@ const stars = new THREE.Points(starGeo, starMat);
 scene.add(stars);
 
 // ==========================================
-// 5. 建立 15 座寬敞錯落的漂浮浮空島與無稜角糖果玩具地標
+// 5. 建立 15 座城市主題機關建築與街區廣場
 // ==========================================
 const HEX_RADIUS = 5.4;
-const HEX_GAP = 1.92; // 大幅拉開島與島之間的空中距離，避免島體與路牌互相擁擠重疊
+const HEX_GAP = 1.92;
 const islandGroups = new Map();
 const pickableMeshes = [];
 const nightBeaconMaterials = [];
@@ -491,263 +528,445 @@ function makeGlowMat(color) {
   return m;
 }
 
-function buildChapterLandmark(chId, unitHex) {
+// 產生立體建築正面中文招牌（如「⚖️ 智慧財產管理局」）
+function createBuildingSignboard(signText, borderHexCss = "#f472b6") {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+
+  // 圓潤膠囊白底 + 主題色外框
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = borderHexCss;
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.roundRect(12, 12, 488, 104, 52);
+  ctx.fill();
+  ctx.stroke();
+
+  // 建築機關名稱文字
+  ctx.fillStyle = "#2d1e2f";
+  ctx.font = "900 44px 'PingFang TC', 'Microsoft JhengHei', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(signText, 256, 66);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const signGeo = new THREE.PlaneGeometry(2.75, 0.68);
+  const signMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+  const signMesh = new THREE.Mesh(signGeo, signMat);
+  return signMesh;
+}
+
+// 輔助函式：在建築物外牆貼上發光玻璃窗格
+function addBuildingWindows(parent, width, floors, startY, zFront, winMat) {
+  const cols = Math.max(2, Math.floor(width / 0.72));
+  const spacingX = (width * 0.72) / Math.max(1, cols - 1);
+  for (let r = 0; r < floors; r++) {
+    for (let c = 0; c < cols; c++) {
+      const wx = -width * 0.36 + c * spacingX;
+      const wy = startY + r * 0.62;
+      const wMesh = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.36, 0.08), winMat);
+      wMesh.position.set(wx, wy, zFront);
+      parent.add(wMesh);
+    }
+  }
+}
+
+function buildChapterLandmark(chId, unitHex, itemMeta, unitColorCss) {
   const g = new THREE.Group();
   const glow = makeGlowMat(unitHex);
   const whiteMat = makeMat(0xffffff);
-  const darkMat = makeMat(0x475569);
+  const creamMat = makeMat(0xfffbeb);
+  const darkMat = makeMat(0x334155);
+  const glassMat = makeGlowMat(0xbae6fd);
   const goldMat = makeGlowMat(0xfde047);
   const pinkMat = makeMat(0xff8fa3);
 
+  let signY = 2.65;
+  let signZ = 1.65;
+  let crownY = 4.65;
+
   switch (chId) {
     case 1: {
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(1.18, 1.42, 0.85, 32), pinkMat);
-      base.position.y = 0.42;
-      const baseRim = new THREE.Mesh(new THREE.TorusGeometry(1.18, 0.16, 16, 36), pinkMat);
-      baseRim.rotation.x = Math.PI / 2;
-      baseRim.position.y = 0.82;
-      const bulb = new THREE.Mesh(new THREE.SphereGeometry(1.38, 28, 28), goldMat);
-      bulb.position.y = 2.15;
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(2.12, 0.14, 20, 48), glow);
-      ring.position.y = 2.15;
+      // 🏛️ Ch.01 數位科技博物館：圓頂玻璃科學館 + 门廊立柱 + 屋頂巨型發光靈感燈泡與數位環
+      const hall = new THREE.Mesh(new THREE.BoxGeometry(3.3, 1.9, 2.5), creamMat);
+      hall.position.y = 0.95;
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(1.45, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2), makeMat(0x6ee7b7));
+      dome.position.y = 1.9;
+      const door = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.05, 0.12), glassMat);
+      door.position.set(0, 0.52, 1.26);
+      g.add(hall, dome, door);
+      for (const px of [-1.2, -0.6, 0.6, 1.2]) {
+        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 1.75, 18), whiteMat);
+        col.position.set(px, 0.88, 1.32);
+        g.add(col);
+      }
+      addBuildingWindows(g, 2.8, 2, 0.68, 1.26, glassMat);
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.62, 24, 24), goldMat);
+      bulb.position.y = 3.65;
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.09, 16, 40), glow);
+      ring.position.y = 3.65;
       ring.rotation.x = Math.PI / 3;
-      g.add(base, baseRim, bulb, ring);
+      g.add(bulb, ring);
       animatedProps.push({ mesh: ring, type: "spin", speed: 1.3 });
+      signY = 2.15;
+      signZ = 1.42;
+      crownY = 4.75;
       break;
     }
     case 2: {
-      for (let i = -2; i <= 2; i++) {
-        const h = 0.7 + Math.abs(Math.cos(i)) * 1.35;
-        const bar = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, h, 16, 24), i % 2 === 0 ? glow : pinkMat);
-        bar.position.set(i * 0.68, h / 2 + 0.26, -0.6);
-        g.add(bar);
-      }
-      const zero = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.22, 20, 36), goldMat);
-      zero.position.set(-0.75, 1.5, 0.9);
-      const one = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 1.05, 16, 24), goldMat);
-      one.position.set(0.75, 1.5, 0.9);
+      // 🏦 Ch.02 二進位編碼資料銀行：金庫廊柱大樓 + 屋頂巨型 0 與 1 金幣雕塑 + 取樣聲波柱
+      const bankBody = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.2, 2.5), whiteMat);
+      bankBody.position.y = 1.1;
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(3.65, 0.32, 2.75), makeMat(0x10b981));
+      roof.position.y = 2.32;
+      // 圓形銀行金庫大門
+      const vaultDoor = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.18, 28), goldMat);
+      vaultDoor.rotation.x = Math.PI / 2;
+      vaultDoor.position.set(0, 0.72, 1.28);
+      g.add(bankBody, roof, vaultDoor);
+      addBuildingWindows(g, 2.9, 2, 0.75, 1.26, glassMat);
+      const zero = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.16, 18, 32), goldMat);
+      zero.position.set(-0.62, 3.25, 0);
+      const one = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.78, 14, 20), goldMat);
+      one.position.set(0.62, 3.25, 0);
       g.add(zero, one);
+      signY = 2.32;
+      signZ = 1.48;
+      crownY = 4.45;
       break;
     }
     case 3: {
-      const pcb = new THREE.Mesh(new THREE.CylinderGeometry(1.78, 1.88, 0.42, 36), makeMat(0x34d399));
-      pcb.position.y = 0.21;
-      const die = new THREE.Mesh(new THREE.CylinderGeometry(1.18, 1.25, 0.52, 32), whiteMat);
-      die.position.y = 0.58;
-      const core = new THREE.Mesh(new THREE.SphereGeometry(0.68, 24, 24), glow);
-      core.scale.set(1, 0.48, 1);
-      core.position.y = 0.88;
-      g.add(pcb, die, core);
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
-        const pin = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), goldMat);
-        pin.position.set(Math.cos(a) * 1.85, 0.25, Math.sin(a) * 1.85);
+      // 🏭 Ch.03 半導體晶圓科技廠：晶圓無塵室廠房 + 金色 IC 針腳外牆 + 屋頂巨型 CPU 核心
+      const fab = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.85, 2.8), makeMat(0xe2e8f0));
+      fab.position.y = 0.92;
+      const pcbRoof = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.28, 3.0), makeMat(0x10b981));
+      pcbRoof.position.y = 1.95;
+      const cpuDie = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.42, 1.75), darkMat);
+      cpuDie.position.y = 2.28;
+      const cpuCore = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.48, 28), glow);
+      cpuCore.position.y = 2.35;
+      g.add(fab, pcbRoof, cpuDie, cpuCore);
+      addBuildingWindows(g, 3.0, 2, 0.65, 1.41, glassMat);
+      // 金色 IC 晶片排針腳
+      for (let i = -3; i <= 3; i++) {
+        const pin = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.45, 0.24), goldMat);
+        pin.position.set(i * 0.48, 0.24, 1.46);
         g.add(pin);
       }
+      signY = 2.02;
+      signZ = 1.56;
+      crownY = 3.85;
       break;
     }
     case 4: {
-      const layerColors = [0x60a5fa, 0xc084fc, 0xff8fa3];
+      // 🏢 Ch.04 雲端運算系統大樓：藍紫粉三層階梯式玻璃摩天大樓 + 頂樓漂浮雲端資料中心
+      const layerColors = [0x60a5fa, 0xa78bfa, 0xf472b6];
       for (let i = 0; i < 3; i++) {
-        const r = 1.45 - i * 0.24;
-        const layer = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 0.08, 0.48, 32), makeMat(layerColors[i]));
-        layer.position.y = 0.3 + i * 0.54;
-        const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.12, 16, 36), makeMat(layerColors[i]));
-        rim.rotation.x = Math.PI / 2;
-        rim.position.y = 0.5 + i * 0.54;
-        g.add(layer, rim);
+        const w = 3.2 - i * 0.45;
+        const d = 2.4 - i * 0.32;
+        const floorBox = new THREE.Mesh(new THREE.BoxGeometry(w, 0.92, d), makeMat(layerColors[i]));
+        floorBox.position.y = 0.46 + i * 0.92;
+        g.add(floorBox);
+        addBuildingWindows(g, w * 0.85, 1, 0.48 + i * 0.92, d / 2 + 0.02, glassMat);
       }
       const cloud = new THREE.Group();
-      const c1 = new THREE.Mesh(new THREE.SphereGeometry(0.88, 24, 24), whiteMat);
-      const c2 = new THREE.Mesh(new THREE.SphereGeometry(0.68, 24, 24), whiteMat);
-      c2.position.set(0.75, -0.1, 0.1);
-      const c3 = new THREE.Mesh(new THREE.SphereGeometry(0.65, 24, 24), whiteMat);
-      c3.position.set(-0.7, -0.14, -0.1);
+      const c1 = new THREE.Mesh(new THREE.SphereGeometry(0.75, 24, 24), whiteMat);
+      const c2 = new THREE.Mesh(new THREE.SphereGeometry(0.58, 24, 24), whiteMat);
+      c2.position.set(0.65, -0.08, 0.1);
+      const c3 = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 24), whiteMat);
+      c3.position.set(-0.62, -0.1, -0.1);
       cloud.add(c1, c2, c3);
-      cloud.position.y = 2.78;
+      cloud.position.y = 3.55;
       g.add(cloud);
-      animatedProps.push({ mesh: cloud, type: "float", baseY: 2.78, speed: 2.2 });
+      animatedProps.push({ mesh: cloud, type: "float", baseY: 3.55, speed: 2.2 });
+      signY = 2.38;
+      signZ = 1.32;
+      crownY = 4.65;
       break;
     }
     case 5: {
-      const gearGroup = new THREE.Group();
-      const gear = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.45, 0.42, 32), glow);
-      gearGroup.add(gear);
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
-        const tooth = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), glow);
-        tooth.position.set(Math.cos(a) * 1.48, 0, Math.sin(a) * 1.48);
-        gearGroup.add(tooth);
-      }
-      gearGroup.position.y = 0.68;
-      const aiCore = new THREE.Mesh(new THREE.SphereGeometry(0.92, 28, 28), goldMat);
-      aiCore.position.y = 2.15;
-      const aiRing = new THREE.Mesh(new THREE.TorusGeometry(1.32, 0.11, 16, 40), pinkMat);
-      aiRing.position.y = 2.15;
+      // 🧪 Ch.05 AI 量子研發總部：雙塔未來實驗室 + 空中走廊 + 旋轉黃金 AI 核心與精密齒輪
+      const towerL = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.92, 2.6, 28), whiteMat);
+      towerL.position.set(-1.05, 1.3, 0);
+      const towerR = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.92, 2.6, 28), whiteMat);
+      towerR.position.set(1.05, 1.3, 0);
+      const bridge = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.65, 1.15), glow);
+      bridge.position.set(0, 1.65, 0.25);
+      g.add(towerL, towerR, bridge);
+      const aiCore = new THREE.Mesh(new THREE.SphereGeometry(0.68, 28, 28), goldMat);
+      aiCore.position.y = 3.35;
+      const aiRing = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.09, 16, 40), pinkMat);
+      aiRing.position.y = 3.35;
       aiRing.rotation.x = Math.PI / 4;
-      g.add(gearGroup, aiCore, aiRing);
-      animatedProps.push({ mesh: gearGroup, type: "spinY", speed: 0.9 });
-      animatedProps.push({ mesh: aiRing, type: "spin", speed: 1.5 });
+      g.add(aiCore, aiRing);
+      animatedProps.push({ mesh: aiRing, type: "spin", speed: 1.6 });
+      signY = 2.42;
+      signZ = 1.15;
+      crownY = 4.65;
       break;
     }
     case 6: {
-      const doc = new THREE.Mesh(new THREE.CapsuleGeometry(0.78, 0.9, 16, 28), whiteMat);
-      doc.scale.set(1.0, 1.0, 0.35);
-      doc.position.set(-0.5, 1.25, -0.2);
-      doc.rotation.y = 0.25;
-      const chart = new THREE.Mesh(new THREE.ConeGeometry(0.82, 1.55, 32), pinkMat);
-      chart.position.set(0.9, 0.85, 0.5);
-      const chartBase = new THREE.Mesh(new THREE.SphereGeometry(0.8, 24, 16), pinkMat);
-      chartBase.scale.set(1, 0.28, 1);
-      chartBase.position.set(0.9, 0.15, 0.5);
-      g.add(doc, chart, chartBase);
+      // 🎬 Ch.06 數位多媒體文創大樓：影視文創大樓 + 場記板屋簷 + 3D 統計圖表與文件雕塑
+      const studio = new THREE.Mesh(new THREE.BoxGeometry(3.3, 2.35, 2.4), creamMat);
+      studio.position.y = 1.18;
+      const awning = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.36, 2.6), pinkMat);
+      awning.position.y = 2.42;
+      g.add(studio, awning);
+      addBuildingWindows(g, 2.8, 3, 0.58, 1.21, glassMat);
+      const doc = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.15, 0.22), whiteMat);
+      doc.position.set(-0.62, 3.15, 0);
+      doc.rotation.y = 0.2;
+      const chart = new THREE.Mesh(new THREE.ConeGeometry(0.65, 1.18, 28), goldMat);
+      chart.position.set(0.65, 3.15, 0);
+      g.add(doc, chart);
+      signY = 2.45;
+      signZ = 1.38;
+      crownY = 4.5;
       break;
     }
     case 7: {
-      const globe = new THREE.Mesh(new THREE.SphereGeometry(1.28, 32, 32), glow);
-      globe.position.y = 1.72;
-      const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.62, 0.09, 16, 40), goldMat);
-      orbit.position.y = 1.72;
+      // 🏟️ Ch.07 電競網際娛樂巨蛋：圓弧巨蛋體育館 + 霓虹光環 + 屋頂全息地球儀
+      const stadiumBase = new THREE.Mesh(new THREE.CylinderGeometry(1.95, 2.15, 1.25, 36), whiteMat);
+      stadiumBase.position.y = 0.62;
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(1.88, 36, 24, 0, Math.PI * 2, 0, Math.PI / 2), makeMat(0xfde047));
+      dome.scale.set(1, 0.72, 1);
+      dome.position.y = 1.22;
+      const neonBelt = new THREE.Mesh(new THREE.TorusGeometry(1.98, 0.1, 16, 48), pinkMat);
+      neonBelt.rotation.x = Math.PI / 2;
+      neonBelt.position.y = 1.22;
+      const globe = new THREE.Mesh(new THREE.SphereGeometry(0.68, 28, 28), glow);
+      globe.position.y = 3.35;
+      const orbit = new THREE.Mesh(new THREE.TorusGeometry(0.98, 0.07, 14, 36), goldMat);
+      orbit.position.y = 3.35;
       orbit.rotation.x = Math.PI / 2.6;
-      const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.95, 0.65, 32), pinkMat);
-      stand.position.y = 0.32;
-      g.add(stand, globe, orbit);
-      animatedProps.push({ mesh: orbit, type: "spin", speed: 1.1 });
+      g.add(stadiumBase, dome, neonBelt, globe, orbit);
+      animatedProps.push({ mesh: orbit, type: "spin", speed: 1.2 });
+      signY = 1.95;
+      signZ = 1.95;
+      crownY = 4.55;
       break;
     }
     case 8: {
-      const monitor = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 0.38, 36), makeMat(0xa78bfa));
-      monitor.rotation.x = Math.PI / 2;
-      monitor.scale.set(1.28, 1, 0.95);
-      monitor.position.y = 1.5;
-      const screen = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, 0.42, 36), glow);
-      screen.rotation.x = Math.PI / 2;
-      screen.scale.set(1.28, 1, 0.95);
-      screen.position.set(0, 1.5, 0.02);
-      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.68, 0.65, 28), whiteMat);
-      neck.position.y = 0.32;
-      g.add(monitor, screen, neck);
+      // 💻 Ch.08 軟體工程創客學院：創客教學大樓 + 巨型寬螢幕程式終端機外牆 + 開發齒輪
+      const campus = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.15, 2.3), whiteMat);
+      campus.position.y = 1.08;
+      const monitorFrame = new THREE.Mesh(new THREE.BoxGeometry(2.65, 1.45, 0.28), makeMat(0x8b5cf6));
+      monitorFrame.position.set(0, 2.95, 0.2);
+      const screen = new THREE.Mesh(new THREE.BoxGeometry(2.35, 1.18, 0.32), glow);
+      screen.position.set(0, 2.95, 0.22);
+      g.add(campus, monitorFrame, screen);
+      addBuildingWindows(g, 2.9, 2, 0.65, 1.16, glassMat);
+      signY = 2.08;
+      signZ = 1.28;
+      crownY = 4.45;
       break;
     }
     case 9: {
-      const phone = new THREE.Mesh(new THREE.CapsuleGeometry(0.72, 1.15, 20, 28), pinkMat);
-      phone.scale.set(1, 1, 0.32);
-      phone.position.y = 1.45;
-      phone.rotation.x = -0.15;
-      const disp = new THREE.Mesh(new THREE.CapsuleGeometry(0.58, 0.95, 20, 28), glow);
-      disp.scale.set(1, 1, 0.32);
-      disp.position.set(0, 1.45, 0.08);
-      disp.rotation.x = -0.15;
-      g.add(phone, disp);
+      // 🏬 Ch.09 行動 App 商城中心：智慧型手機摩天百貨大樓 + 9 宮格繽紛 App 圖示櫥窗
+      const mallBase = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.15, 2.3), creamMat);
+      mallBase.position.y = 0.58;
+      const phoneTower = new THREE.Mesh(new THREE.BoxGeometry(2.15, 2.95, 0.95), pinkMat);
+      phoneTower.position.y = 2.15;
+      const phoneScreen = new THREE.Mesh(new THREE.BoxGeometry(1.85, 2.45, 0.98), darkMat);
+      phoneScreen.position.set(0, 2.18, 0.02);
+      g.add(mallBase, phoneTower, phoneScreen);
+      const appColors = [0x38bdf8, 0x34d399, 0xfbbf24, 0xf472b6, 0xa78bfa, 0xfb923c];
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          const iconBox = new THREE.Mesh(
+            new THREE.BoxGeometry(0.42, 0.42, 0.08),
+            makeGlowMat(appColors[(r * 3 + c) % appColors.length])
+          );
+          iconBox.position.set((c - 1) * 0.54, 1.45 + r * 0.62, 0.52);
+          g.add(iconBox);
+        }
+      }
+      signY = 1.25;
+      signZ = 1.28;
+      crownY = 4.35;
       break;
     }
     case 10: {
-      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.62, 2.25, 32), whiteMat);
-      pillar.position.y = 1.12;
-      const beam = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 2.1, 16, 24), goldMat);
+      // ⚖️ Ch.10 智慧財產管理局：莊重白色古典廊柱市政廳 + 三角山牆屋頂 + 黃金公平天平與專利護盾
+      const steps = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.35, 2.9), makeMat(0xe2e8f0));
+      steps.position.y = 0.18;
+      const bureauHall = new THREE.Mesh(new THREE.BoxGeometry(3.3, 2.05, 2.3), whiteMat);
+      bureauHall.position.y = 1.2;
+      // 古典四大羅馬廊柱
+      for (const cx of [-1.25, -0.45, 0.45, 1.25]) {
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 2.05, 20), creamMat);
+        pillar.position.set(cx, 1.2, 1.28);
+        g.add(pillar);
+      }
+      // 古典山牆三角屋頂
+      const pediment = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 2.35, 0.95, 4), makeMat(0xf59e0b));
+      pediment.rotation.y = Math.PI / 4;
+      pediment.scale.set(1.15, 1, 0.85);
+      pediment.position.y = 2.68;
+      // 屋頂黃金公平天平（Scales of Justice）與智慧財產權護盾
+      const scalePillar = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 1.15, 20), goldMat);
+      scalePillar.position.y = 3.45;
+      const beam = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 1.65, 12, 20), goldMat);
       beam.rotation.z = Math.PI / 2;
-      beam.position.y = 2.25;
-      const shield = new THREE.Mesh(new THREE.SphereGeometry(0.85, 28, 28), glow);
-      shield.scale.set(1.05, 1.18, 0.38);
-      shield.position.set(0, 1.2, 0.55);
-      g.add(pillar, beam, shield);
+      beam.position.y = 3.95;
+      const panL = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.18, 0.16, 20), goldMat);
+      panL.position.set(-0.78, 3.55, 0);
+      const panR = panL.clone();
+      panR.position.x = 0.78;
+      const shield = new THREE.Mesh(new THREE.SphereGeometry(0.48, 24, 24), glow);
+      shield.scale.set(1.0, 1.15, 0.35);
+      shield.position.set(0, 2.55, 1.32);
+      g.add(steps, bureauHall, pediment, scalePillar, beam, panL, panR, shield);
+      addBuildingWindows(g, 2.6, 2, 0.75, 1.16, glassMat);
+      signY = 2.18;
+      signZ = 1.48;
+      crownY = 4.75;
       break;
     }
     case 11: {
-      const tower = new THREE.Mesh(new THREE.ConeGeometry(0.92, 2.75, 32), whiteMat);
-      tower.position.y = 1.38;
-      const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 24), goldMat);
-      beacon.position.y = 2.92;
-      const wave = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.1, 20, 40), glow);
+      // 📡 Ch.11 電信通訊衛星總局：電信大樓 + 紅白相間高聳微波電塔 + 衛星碟形天線與電波環
+      const telecomBldg = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.85, 2.3), whiteMat);
+      telecomBldg.position.y = 0.92;
+      const tower = new THREE.Mesh(new THREE.ConeGeometry(0.65, 2.35, 28), pinkMat);
+      tower.position.y = 2.95;
+      const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.32, 20, 20), goldMat);
+      beacon.position.y = 4.2;
+      const wave = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.08, 16, 36), glow);
       wave.rotation.x = Math.PI / 2;
-      wave.position.y = 2.6;
-      g.add(tower, beacon, wave);
+      wave.position.y = 3.85;
+      g.add(telecomBldg, tower, beacon, wave);
+      addBuildingWindows(g, 2.7, 2, 0.65, 1.16, glassMat);
       animatedProps.push({ mesh: wave, type: "pulse", speed: 2.2 });
+      signY = 1.98;
+      signZ = 1.32;
+      crownY = 4.95;
       break;
     }
     case 12: {
-      const router = new THREE.Mesh(new THREE.CylinderGeometry(1.32, 1.42, 0.52, 36), whiteMat);
-      router.position.y = 0.32;
-      for (let x of [-0.72, 0.72]) {
+      // 🖧 Ch.12 光纖路由機房中心：網路交換機房大樓 + 伺服器機櫃燈號牆 + 屋頂四天線巨型無線路由器
+      const dcBldg = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.15, 2.4), darkMat);
+      dcBldg.position.y = 1.08;
+      const routerRoof = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 0.42, 32), whiteMat);
+      routerRoof.position.y = 2.35;
+      g.add(dcBldg, routerRoof);
+      addBuildingWindows(g, 2.8, 3, 0.55, 1.21, glow);
+      for (let x of [-0.75, 0.75]) {
         for (let z of [-0.45, 0.45]) {
-          const ant = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 1.15, 12, 20), glow);
-          ant.position.set(x, 1.08, z);
+          const ant = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 1.05, 12, 18), goldMat);
+          ant.position.set(x, 3.05, z);
           g.add(ant);
         }
       }
-      const rack = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.78, 2.05, 32), darkMat);
-      rack.position.set(0, 1.02, -0.92);
-      g.add(router, rack);
+      signY = 2.18;
+      signZ = 1.36;
+      crownY = 4.35;
       break;
     }
     case 13: {
-      const hub = new THREE.Mesh(new THREE.SphereGeometry(0.72, 28, 28), goldMat);
-      hub.scale.set(1, 0.68, 1);
-      hub.position.y = 0.5;
-      g.add(hub);
+      // 🚉 Ch.13 網路拓樸轉運總站：六角中央車站大樓 + 五座放射狀星狀拓樸月台廊道
+      const centralStation = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 1.95, 6), whiteMat);
+      centralStation.position.y = 0.98;
+      const stationDome = new THREE.Mesh(new THREE.SphereGeometry(1.15, 24, 20), goldMat);
+      stationDome.scale.set(1, 0.55, 1);
+      stationDome.position.y = 2.05;
+      g.add(centralStation, stationDome);
       for (let i = 0; i < 5; i++) {
         const ang = (i / 5) * Math.PI * 2;
-        const nx = Math.cos(ang) * 1.75;
-        const nz = Math.sin(ang) * 1.75;
-        const node = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 24), glow);
-        node.position.set(nx, 0.45, nz);
-        const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.65, 16), whiteMat);
-        tube.rotation.z = Math.PI / 2;
-        tube.rotation.y = -ang;
-        tube.position.set(nx * 0.5, 0.32, nz * 0.5);
-        g.add(node, tube);
+        const nx = Math.cos(ang) * 1.95;
+        const nz = Math.sin(ang) * 1.95;
+        const terminal = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 1.05, 20), glow);
+        terminal.position.set(nx, 0.52, nz);
+        const concourse = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.45, 1.65), pinkMat);
+        concourse.rotation.y = -ang + Math.PI / 2;
+        concourse.position.set(nx * 0.5, 0.42, nz * 0.5);
+        g.add(terminal, concourse);
       }
+      signY = 2.35;
+      signZ = 1.35;
+      crownY = 3.95;
       break;
     }
     case 14: {
+      // 🗼 Ch.14 OSI 七層協定摩天塔：七層彩虹玻璃摩天大樓（對應 OSI 七層架構）+ 頂樓通訊光塔
       const rainbow = [0xff8fa3, 0xfdba74, 0xfde047, 0x6ee7b7, 0x7dd3fc, 0xa5b4fc, 0xd8b4fe];
       for (let i = 0; i < 7; i++) {
-        const r = 1.48 - i * 0.13;
-        const layer = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 0.05, 0.34, 36), makeMat(rainbow[i]));
-        layer.position.y = 0.22 + i * 0.35;
-        const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.09, 14, 32), makeMat(rainbow[i]));
-        rim.rotation.x = Math.PI / 2;
-        rim.position.y = 0.22 + i * 0.35;
-        g.add(layer, rim);
+        const w = 2.9 - i * 0.18;
+        const d = 2.2 - i * 0.14;
+        const floor = new THREE.Mesh(new THREE.BoxGeometry(w, 0.44, d), makeMat(rainbow[i]));
+        floor.position.y = 0.22 + i * 0.46;
+        g.add(floor);
       }
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.95, 20), goldMat);
+      spire.position.y = 3.85;
+      g.add(spire);
+      signY = 2.15;
+      signZ = 1.25;
+      crownY = 4.75;
       break;
     }
     case 15: {
-      const pinHead = new THREE.Mesh(new THREE.SphereGeometry(0.95, 28, 28), goldMat);
-      pinHead.position.y = 2.4;
-      const pinHalo = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.1, 16, 36), pinkMat);
-      pinHalo.position.y = 2.4;
+      // 🧭 Ch.15 DNS 網域導航總署：領航市政總署大樓 + 屋頂巨型 3D 地圖定位針 📍 與旋轉雷達光環
+      const navHQ = new THREE.Mesh(new THREE.BoxGeometry(3.3, 1.95, 2.3), whiteMat);
+      navHQ.position.y = 0.98;
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.14, 16, 32, Math.PI), glow);
+      arch.position.set(0, 0.45, 1.18);
+      const pinHead = new THREE.Mesh(new THREE.SphereGeometry(0.72, 28, 28), goldMat);
+      pinHead.position.y = 3.55;
+      const pinHalo = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.09, 16, 36), pinkMat);
+      pinHalo.position.y = 3.55;
       pinHalo.rotation.x = Math.PI / 3;
-      const pinTip = new THREE.Mesh(new THREE.ConeGeometry(0.62, 1.35, 32), glow);
+      const pinTip = new THREE.Mesh(new THREE.ConeGeometry(0.48, 1.05, 28), glow);
       pinTip.rotation.x = Math.PI;
-      pinTip.position.y = 1.1;
-      g.add(pinHead, pinHalo, pinTip);
+      pinTip.position.y = 2.55;
+      g.add(navHQ, arch, pinHead, pinHalo, pinTip);
+      addBuildingWindows(g, 2.8, 2, 0.72, 1.16, glassMat);
       animatedProps.push({ mesh: pinHalo, type: "spin", speed: 1.3 });
+      signY = 2.08;
+      signZ = 1.32;
+      crownY = 4.75;
       break;
     }
   }
 
-  // 圓潤球狀棒棒糖樹點綴（無稜角平滑球體）
+  // 掛載 3D 立體中文機關建築招牌（如「智慧財產管理局」）
+  const signText = itemMeta?.signText || `第 ${chId} 館`;
+  const signMesh = createBuildingSignboard(signText, unitColorCss);
+  signMesh.position.set(0, signY, signZ);
+  g.add(signMesh);
+
+  // 城市街區行道樹與發光街燈點綴
   const treeCoords = [
-    [-2.55, 1.75],
-    [2.45, -1.65],
-    [-2.05, -2.15]
+    [-2.85, 1.95],
+    [2.85, -1.85],
+    [-2.45, -2.25]
   ];
   const candyFoliageColors = [0x6ee7b7, 0x5eead4, 0xf9a8d4, 0xfde047];
   treeCoords.forEach(([tx, tz], idx) => {
     if ((chId + idx) % 2 === 0) {
-      const trunk = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.45, 12, 20), makeMat(0xd4a373));
+      const trunk = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.45, 12, 20), makeMat(0xd4a373));
       trunk.position.set(tx, 0.32, tz);
       const foliage = new THREE.Mesh(
-        new THREE.SphereGeometry(0.72, 24, 24),
+        new THREE.SphereGeometry(0.68, 24, 24),
         makeMat(candyFoliageColors[(chId + idx) % candyFoliageColors.length])
       );
-      foliage.position.set(tx, 1.06, tz);
+      foliage.position.set(tx, 1.02, tz);
       g.add(trunk, foliage);
     }
   });
 
-  // 關卡滿 3 星時的圓潤黃金珍珠皇冠（無尖銳稜角）
+  // 建築物前方廣場雙側暖光城市路燈
+  for (const lx of [-2.35, 2.35]) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.25, 12), darkMat);
+    pole.position.set(lx, 0.62, 2.15);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), goldMat);
+    bulb.position.set(lx, 1.32, 2.15);
+    g.add(pole, bulb);
+  }
+
+  // 關卡滿 3 星時的圓潤黃金珍珠皇冠
   const crown = new THREE.Group();
   const crownRing = new THREE.Mesh(new THREE.TorusGeometry(0.46, 0.13, 20, 36), goldMat);
   crownRing.rotation.x = Math.PI / 2;
@@ -758,7 +977,7 @@ function buildChapterLandmark(chId, unitHex) {
     pearl.position.set(Math.cos(a) * 0.46, 0.18, Math.sin(a) * 0.46);
     crown.add(pearl);
   }
-  crown.position.set(0, 3.85, 0);
+  crown.position.set(0, crownY, 0);
   crown.visible = false;
   g.add(crown);
   g.userData.crown = crown;
@@ -773,182 +992,67 @@ function buildChapterLandmark(chId, unitHex) {
   return g;
 }
 
-// 建立 15 座漂浮在空中的 Q版天空浮空島（階層式倒錐浮空岩座 + 反重力發光水晶 + 環繞小浮石與雲朵托座）
+// 建立 15 座城市街區廣場與對應主題建築物
 ISLAND_LAYOUT.forEach((item, index) => {
   const unit = getUnit(item.unit);
   const pos = axialToWorld(item.q, item.r);
-  const baseY = item.skyY ?? 4.0;
-  pos.y = baseY;
+  pos.y = 0;
 
   const group = new THREE.Group();
   group.position.copy(pos);
-  group.userData = { chId: item.id, unitId: item.unit, baseY, phase: index * 0.62 };
+  group.userData = {
+    chId: item.id,
+    unitId: item.unit,
+    baseY: 0,
+    phase: index * 0.62,
+    bName: item.bName,
+    bIcon: item.bIcon
+  };
 
-  const rockWarmMat = makeMat(0xd4a373, { roughness: 0.62 });
-  const rockDeepMat = makeMat(0xb07d52, { roughness: 0.68 });
-  const rockTipMat = makeMat(0x8c5e3c, { roughness: 0.72 });
+  // 1. 城市街區外圍人行道基座（圓潤石材路緣）
+  const curbGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.95, HEX_RADIUS * 0.97, 0.36, 48);
+  const curbMat = makeMat(0xe2e8f0, { roughness: 0.55 });
+  const curb = new THREE.Mesh(curbGeo, curbMat);
+  curb.position.y = 0.18;
+  curb.receiveShadow = true;
+  group.add(curb);
 
-  // 1. 浮空島第一階：上層圓潤琥珀岩座
-  const rockUpper = new THREE.Mesh(
-    new THREE.CylinderGeometry(HEX_RADIUS * 0.88, HEX_RADIUS * 0.65, 1.45, 40),
-    rockWarmMat
+  // 2. 城區代表色發光邊框與迎賓廣場地磚
+  const districtPlazaGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.88, HEX_RADIUS * 0.90, 0.48, 48);
+  const districtPlazaMat = makeMat(unit.hex, { roughness: 0.42 });
+  const districtPlaza = new THREE.Mesh(districtPlazaGeo, districtPlazaMat);
+  districtPlaza.position.y = 0.28;
+  districtPlaza.receiveShadow = true;
+  group.add(districtPlaza);
+
+  const innerTileGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.78, HEX_RADIUS * 0.80, 0.54, 48);
+  const innerTileMat = makeMat(0xfffdf9, { roughness: 0.48 });
+  const innerTile = new THREE.Mesh(innerTileGeo, innerTileMat);
+  innerTile.position.y = 0.32;
+  innerTile.receiveShadow = true;
+  group.add(innerTile);
+
+  // 建築正門迎賓紅毯步道與斑馬線
+  const entranceWalkway = new THREE.Mesh(
+    new THREE.BoxGeometry(1.45, 0.08, 2.2),
+    makeMat(unit.hex, { roughness: 0.4 })
   );
-  rockUpper.position.y = -0.72;
-  rockUpper.receiveShadow = true;
-  rockUpper.castShadow = true;
-  group.add(rockUpper);
+  entranceWalkway.position.set(0, 0.58, 2.45);
+  entranceWalkway.receiveShadow = true;
+  group.add(entranceWalkway);
 
-  const rockUpperRim = new THREE.Mesh(
-    new THREE.TorusGeometry(HEX_RADIUS * 0.66, 0.24, 16, 40),
-    rockWarmMat
-  );
-  rockUpperRim.rotation.x = Math.PI / 2;
-  rockUpperRim.position.y = -1.42;
-  group.add(rockUpperRim);
-
-  // 2. 浮空島第二階：中層漸縮倒錐形浮空島岩腹
-  const rockMid = new THREE.Mesh(
-    new THREE.CylinderGeometry(HEX_RADIUS * 0.64, HEX_RADIUS * 0.34, 1.85, 36),
-    rockDeepMat
-  );
-  rockMid.position.y = -2.35;
-  rockMid.receiveShadow = true;
-  rockMid.castShadow = true;
-  group.add(rockMid);
-
-  // 島腹周圍不對稱圓潤浮空岩塊（增添自然空島的立體層次感）
-  for (let k = 0; k < 4; k++) {
-    const lobeAng = (k / 4) * Math.PI * 2 + index * 0.5;
-    const lobeR = HEX_RADIUS * 0.48;
-    const lobe = new THREE.Mesh(
-      new THREE.SphereGeometry(0.95 + (k % 2) * 0.28, 20, 20),
-      k % 2 === 0 ? rockWarmMat : rockDeepMat
-    );
-    lobe.scale.set(1.1, 1.45, 0.95);
-    lobe.position.set(
-      Math.cos(lobeAng) * lobeR,
-      -1.85 - (k % 2) * 0.45,
-      Math.sin(lobeAng) * lobeR
-    );
-    group.add(lobe);
-  }
-
-  // 3. 浮空島第三階：底部收束垂墜岩尖（無尖銳稜角，以圓球收尾）
-  const rockLower = new THREE.Mesh(
-    new THREE.CylinderGeometry(HEX_RADIUS * 0.34, 0.42, 1.55, 32),
-    rockTipMat
-  );
-  rockLower.position.y = -3.95;
-  rockLower.castShadow = true;
-  group.add(rockLower);
-
-  const rockTipCap = new THREE.Mesh(new THREE.SphereGeometry(0.46, 20, 20), rockTipMat);
-  rockTipCap.position.y = -4.72;
-  group.add(rockTipCap);
-
-  // 4. 島底反重力魔法浮空能量水晶 + 懸浮光環
-  const crystalMat = makeGlowMat(unit.hex);
-  const floatCrystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.58, 1), crystalMat);
-  floatCrystal.scale.set(0.85, 1.45, 0.85);
-  floatCrystal.position.y = -5.55;
-  group.add(floatCrystal);
-  animatedProps.push({ mesh: floatCrystal, type: "spinY", speed: 1.8 });
-
-  const magicHalo = new THREE.Mesh(
-    new THREE.TorusGeometry(1.15, 0.07, 14, 36),
-    makeGlowMat(0xfef08a)
-  );
-  magicHalo.rotation.x = Math.PI / 2;
-  magicHalo.position.y = -5.15;
-  group.add(magicHalo);
-
-  // 5. 環繞浮空島下半部的迷你漂浮小碎石 & 軟綿托島小雲朵
-  const orbitPebbleGroup = new THREE.Group();
-  for (let p = 0; p < 3; p++) {
-    const pAng = (p / 3) * Math.PI * 2 + index;
-    const distR = HEX_RADIUS * 0.78 + (p % 2) * 0.55;
-    const pebble = new THREE.Mesh(
-      new THREE.SphereGeometry(0.34 + (p % 2) * 0.12, 16, 16),
-      p === 0 ? crystalMat : rockWarmMat
-    );
-    pebble.scale.set(1.2, 0.78, 1.0);
-    pebble.position.set(Math.cos(pAng) * distR, -2.1 - p * 0.75, Math.sin(pAng) * distR);
-    orbitPebbleGroup.add(pebble);
-  }
-  group.add(orbitPebbleGroup);
-  animatedProps.push({ mesh: orbitPebbleGroup, type: "spinY", speed: 0.35 + (index % 3) * 0.1 });
-
-  // 島嶼底部的蓬鬆雲朵環抱點綴
-  for (let c = 0; c < 2; c++) {
-    const cAng = c * Math.PI + index * 0.9;
-    const puffGroup = new THREE.Group();
-    const puff1 = new THREE.Mesh(new THREE.SphereGeometry(0.92, 18, 18), cloudWhiteMat);
-    puff1.scale.set(1.25, 0.75, 1.0);
-    const puff2 = new THREE.Mesh(new THREE.SphereGeometry(0.68, 16, 16), cloudWhiteMat);
-    puff2.position.set(0.75, -0.1, 0.2);
-    puffGroup.add(puff1, puff2);
-    puffGroup.position.set(
-      Math.cos(cAng) * (HEX_RADIUS * 0.68),
-      -2.65 - c * 0.5,
-      Math.sin(cAng) * (HEX_RADIUS * 0.68)
-    );
-    group.add(puffGroup);
-  }
-
-  // 部分浮空島邊緣傾瀉而下的夢幻天空小瀑布
-  if (item.id % 3 === 1) {
-    const wfMat = makeGlowMat(0x7dd3fc);
-    const wfStream = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 2.8, 12, 20), wfMat);
-    wfStream.position.set(HEX_RADIUS * 0.82, -1.25, 0.8);
-    wfStream.rotation.z = -0.12;
-    const wfMist1 = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), cloudWhiteMat);
-    wfMist1.position.set(HEX_RADIUS * 0.9, -2.85, 0.8);
-    const wfMist2 = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 14), wfMat);
-    wfMist2.position.set(HEX_RADIUS * 0.85, 0.25, 0.8);
-    group.add(wfStream, wfMist1, wfMist2);
-  }
-
-  // 6. 中層香草奶油圓弧軟墊沙灘
-  const sandGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.94, HEX_RADIUS * 0.90, 0.48, 40);
-  const sandMat = makeMat(0xfff3b0, { roughness: 0.5 });
-  const sand = new THREE.Mesh(sandGeo, sandMat);
-  sand.position.y = 0.24;
-  sand.receiveShadow = true;
-  group.add(sand);
-
-  const sandCushion = new THREE.Mesh(new THREE.TorusGeometry(HEX_RADIUS * 0.90, 0.24, 20, 48), sandMat);
-  sandCushion.rotation.x = Math.PI / 2;
-  sandCushion.position.y = 0.24;
-  group.add(sandCushion);
-
-  // 7. 上層馬卡龍糖霜圓潤草地（搭配甜甜圈圓弧邊緣，完全無稜角）
-  const topGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.85, HEX_RADIUS * 0.89, 0.52, 40);
-  const topMat = makeMat(unit.hex, { roughness: 0.38 });
-  const top = new THREE.Mesh(topGeo, topMat);
-  top.position.y = 0.74;
-  top.castShadow = true;
-  top.receiveShadow = true;
-  group.add(top);
-
-  const topCushion = new THREE.Mesh(new THREE.TorusGeometry(HEX_RADIUS * 0.84, 0.26, 22, 48), topMat);
-  topCushion.rotation.x = Math.PI / 2;
-  topCushion.position.y = 0.76;
-  topCushion.castShadow = true;
-  topCushion.receiveShadow = true;
-  group.add(topCushion);
-
-  // 圓滑發光外框環（48 段正圓）
-  const rimGeo = new THREE.RingGeometry(HEX_RADIUS * 0.77, HEX_RADIUS * 0.84, 48);
+  // 圓滑發光選取外框環
+  const rimGeo = new THREE.RingGeometry(HEX_RADIUS * 0.81, HEX_RADIUS * 0.88, 48);
   rimGeo.rotateX(-Math.PI / 2);
-  const rimMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+  const rimMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
   const rim = new THREE.Mesh(rimGeo, rimMat);
-  rim.position.y = 1.03;
+  rim.position.y = 0.61;
   group.add(rim);
   group.userData.rimMat = rimMat;
 
-  // 地標與皇冠
-  const landmark = buildChapterLandmark(item.id, unit.hex);
-  landmark.position.y = 1.02;
+  // 建立該章節專屬主題建築物與皇冠
+  const landmark = buildChapterLandmark(item.id, unit.hex, item, unit.color);
+  landmark.position.y = 0.58;
   group.add(landmark);
   group.userData.crown = landmark.userData.crown;
 
@@ -962,7 +1066,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
   scene.add(group);
   islandGroups.set(item.id, group);
 
-  // 建立 Q 版關卡路牌標籤（單行精巧膠囊＋3 顆星進度，不遮擋鄰島）
+  // 建立城市建築雙層路牌標籤（上層：專屬建築名稱 + 星級；下層：對應章節主題）
   const chData = chapters[item.id] || { title: `第 ${item.id} 章`, icon: "📘" };
   const label = document.createElement("div");
   label.className = "island-label";
@@ -971,9 +1075,10 @@ ISLAND_LAYOUT.forEach((item, index) => {
   label.innerHTML = `
     <div class="island-label-top">
       <span class="ch-badge">${String(item.id).padStart(2, "0")}</span>
-      <span class="ch-title-text">${chData.icon} ${chData.title}</span>
+      <span class="ch-title-text">${item.bIcon} ${item.bName}</span>
       <span class="island-stars" id="istars-${item.id}">☆☆☆</span>
     </div>
+    <div class="island-label-sub">${chData.icon} ${chData.title}</div>
     <div class="island-peers-row" id="ipeers-${item.id}"></div>
   `;
   label.addEventListener("click", e => {
@@ -986,7 +1091,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
 });
 
 // ==========================================
-// 6. 建立 20 條圓滑彩虹光束軟管橋與珍珠光球（連接高低錯落的浮空島）
+// 6. 建立 20 條城市柏油馬路幹道、車道標線與自動駕駛資料小巴士
 // ==========================================
 const linksGroup = new THREE.Group();
 scene.add(linksGroup);
@@ -999,33 +1104,66 @@ COLLAB_LINKS.forEach((link, idx) => {
   if (!gA || !gB) return;
 
   const pA = gA.position.clone();
-  pA.y = (gA.userData.baseY ?? 4.0) + 1.55;
+  pA.y = 0.22;
   const pB = gB.position.clone();
-  pB.y = (gB.userData.baseY ?? 4.0) + 1.55;
+  pB.y = 0.22;
   const mid = pA.clone().add(pB).multiplyScalar(0.5);
   const dist = pA.distanceTo(pB);
-  mid.y = Math.max(pA.y, pB.y) + Math.min(7.5, 2.2 + dist * 0.2);
+  const angle = Math.atan2(pB.x - pA.x, pB.z - pA.z);
 
-  const curve = new THREE.QuadraticBezierCurve3(pA, mid, pB);
-  const geo = new THREE.TubeGeometry(curve, 52, 0.075, 14, false);
+  // 1. 地面城市柏油馬路幹道與白色車道邊線
+  const roadStrip = new THREE.Mesh(
+    new THREE.BoxGeometry(1.35, 0.08, dist),
+    new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.72 })
+  );
+  roadStrip.position.set(mid.x, 0.12, mid.z);
+  roadStrip.rotation.y = angle;
+  roadStrip.receiveShadow = true;
+  linksGroup.add(roadStrip);
+
+  const centerLine = new THREE.Mesh(
+    new THREE.BoxGeometry(0.14, 0.09, dist * 0.86),
+    new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.75 })
+  );
+  centerLine.position.set(mid.x, 0.13, mid.z);
+  centerLine.rotation.y = angle;
+  linksGroup.add(centerLine);
+
+  // 2. 低空智慧導航光軌（選取建築時高亮顯示跨領域關聯）
+  const navCurve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(pA.x, 0.45, pA.z),
+    new THREE.Vector3(mid.x, 0.65, mid.z),
+    new THREE.Vector3(pB.x, 0.45, pB.z)
+  );
+  const geo = new THREE.TubeGeometry(navCurve, 32, 0.065, 12, false);
   const baseColor = rainbowPalette[idx % rainbowPalette.length];
   const mat = new THREE.MeshStandardMaterial({
     color: baseColor,
     emissive: baseColor,
-    emissiveIntensity: 0.28,
+    emissiveIntensity: 0.35,
     roughness: 0.35,
     transparent: true,
-    opacity: 0.42
+    opacity: 0.48
   });
   const line = new THREE.Mesh(geo, mat);
   linksGroup.add(line);
 
-  const dotGeo = new THREE.SphereGeometry(0.26, 20, 20);
-  const dotMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-  const dot = new THREE.Mesh(dotGeo, dotMat);
+  // 3. 穿梭於城市馬路上的 Q 版自動駕駛資料小巴士
+  const dot = new THREE.Group();
+  const busBody = new THREE.Mesh(
+    new THREE.BoxGeometry(0.46, 0.32, 0.72),
+    new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.3 })
+  );
+  busBody.position.y = 0.22;
+  const busWin = new THREE.Mesh(
+    new THREE.BoxGeometry(0.48, 0.16, 0.46),
+    new THREE.MeshBasicMaterial({ color: 0xe0f2fe })
+  );
+  busWin.position.y = 0.26;
+  dot.add(busBody, busWin);
   linksGroup.add(dot);
 
-  linkObjects.push({ ...link, baseColor, curve, line, mat, dot, t: Math.random() });
+  linkObjects.push({ ...link, baseColor, curve: navCurve, line, mat, dot, t: Math.random() });
 });
 
 // ==========================================
@@ -1453,11 +1591,12 @@ function renderPanel(chId) {
       </div>
       <div class="panel-title-row">
         <div class="panel-title">
-          <span>${ch.icon}</span>
-          <span>第 ${ch.id} 關｜${ch.title}</span>
+          <span>${meta?.bIcon || ch.icon}</span>
+          <span>第 ${ch.id} 關｜${meta?.bName || ch.title}</span>
         </div>
         <div class="stage-stars-box" id="panel-stars-box" title="本關最高星數">${starString(curStars)}</div>
       </div>
+      <div style="font-size:13.5px;font-weight:800;color:var(--unit-color,#3b82f6);margin-top:2px;">對應教學單元：${ch.icon} ${ch.title}</div>
       <p class="panel-summary">${ch.summary}</p>
     </div>
     <div class="panel-tabs">
@@ -2254,14 +2393,16 @@ function toggleListView(force) {
           ${u.chapters
             .map(cid => {
               const c = chapters[cid];
+              const meta = getIslandMeta(cid);
               const sc = gameState.stars[cid] || 0;
               return `
               <div class="list-card" data-cid="${cid}">
                 <div class="list-card-top">
-                  <span>關卡 ${String(cid).padStart(2, "0")}</span>
+                  <span>關卡 ${String(cid).padStart(2, "0")} · ${meta?.bName || ""}</span>
                   <span>${starString(sc)}</span>
                 </div>
-                <h4>${c.icon} ${c.title}</h4>
+                <h4>${meta?.bIcon || c.icon} ${meta?.bName || c.title}</h4>
+                <div style="font-size:12px;color:#64748b;font-weight:700;margin-bottom:4px;">單元：${c.icon} ${c.title}</div>
                 <p>${c.summary}</p>
               </div>`;
             })
@@ -3467,18 +3608,17 @@ function animate() {
     });
   }
 
-  // 先更新 15 座天空浮空島的上下漂浮高度，並收集 2D 螢幕座標進行「防重疊自動避讓演算法」
+  // 城市街區廣場維持平穩在地面（y = 0），並收集 2D 螢幕座標進行「防重疊自動避讓演算法」
   const visibleLabels = [];
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const isCompactScreen = vw <= 860;
-  const estLabelW = isCompactScreen ? 152 : 186;
-  const estLabelH = isCompactScreen ? 32 : 38;
+  const estLabelW = isCompactScreen ? 165 : 205;
+  const estLabelH = isCompactScreen ? 44 : 52;
 
   islandGroups.forEach((group, id) => {
-    const baseY = group.userData.baseY ?? 4.0;
-    group.position.y = baseY + Math.sin(elapsed * 1.45 + group.userData.phase) * 0.48;
-    projVec.set(group.position.x, group.position.y + 4.15, group.position.z).project(camera);
+    group.position.y = 0;
+    projVec.set(group.position.x, group.position.y + 4.65, group.position.z).project(camera);
     const label = group.userData.labelEl;
     if (projVec.z > 1 || projVec.z < -1) {
       label.style.display = "none";
@@ -3572,12 +3712,12 @@ function animate() {
     item.label.style.transform = `translate(-50%, -100%) translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0)`;
   });
 
-  // Bit 博士在浮空島間巡島與揮手
+  // Bit 博士在城市街區廣場間巡迴與揮手
   if (mascotState.pauseTimer > 0) {
     mascotState.pauseTimer -= dt;
     const g = islandGroups.get(mascotState.fromId);
     if (g) {
-      mascotGroup.position.set(g.position.x + 1.8, g.position.y + 1.05, g.position.z + 1.8);
+      mascotGroup.position.set(g.position.x + 2.2, 0.48, g.position.z + 2.2);
       mascotGroup.userData.arm.rotation.z = -0.6 + Math.sin(elapsed * 9) * 0.5;
     }
     if (mascotState.pauseTimer <= 0) {
@@ -3595,7 +3735,7 @@ function animate() {
     if (gA && gB) {
       const t = Math.min(1, mascotState.progress);
       mascotGroup.position.lerpVectors(gA.position, gB.position, t);
-      mascotGroup.position.y += 1.05 + Math.sin(t * Math.PI) * 2.2 + Math.abs(Math.sin(elapsed * 11)) * 0.16;
+      mascotGroup.position.y = 0.48 + Math.abs(Math.sin(elapsed * 11)) * 0.12;
       mascotGroup.lookAt(gB.position.x, mascotGroup.position.y, gB.position.z);
     }
     if (mascotState.progress >= 1) {
@@ -3617,13 +3757,10 @@ function animate() {
     if (mascotState.bubbleTimer <= 0) mascotBubble.classList.add("hidden");
   }
 
-  // 更新島上其他學伴 3D 擬人化公仔（跟隨浮空島高度、邁步擺手、揮手打招呼與頭頂角色名牌投影）
+  // 更新城區上其他學伴 3D 擬人化市民公仔（在建築正門人行道行走、揮手與頭頂角色名牌投影）
   if (showPeers) {
     peer3DEntities.forEach(ent => {
-      const isl = islandGroups.get(ent.peerData.chId) || islandGroups.get(1);
-      if (isl) {
-        ent.targetPos.y = isl.position.y + 1.05;
-      }
+      ent.targetPos.y = 0.52;
       const prevX = ent.curPos.x;
       const prevZ = ent.curPos.z;
       ent.curPos.lerp(ent.targetPos, Math.min(1, dt * 3.2));
@@ -3640,12 +3777,12 @@ function animate() {
       }
 
       const hop = isWalking
-        ? Math.abs(Math.sin(elapsed * 11 + ent.phase)) * 0.72
+        ? Math.abs(Math.sin(elapsed * 11 + ent.phase)) * 0.45
         : isGreeting
-        ? Math.abs(Math.sin(elapsed * 14)) * 0.35
-        : Math.sin(elapsed * 3 + ent.phase) * 0.07;
+        ? Math.abs(Math.sin(elapsed * 14)) * 0.28
+        : Math.sin(elapsed * 3 + ent.phase) * 0.05;
 
-      ent.group.position.set(ent.curPos.x, ent.curPos.y + hop, ent.curPos.z);
+      ent.group.position.set(ent.curPos.x, 0.48 + hop, ent.curPos.z);
 
       // 角色面向：移動時朝向前進方向，靜止時朝向鏡頭並微幅左右擺頭
       if (isWalking) {
