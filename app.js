@@ -4311,10 +4311,6 @@ function animate() {
   }
   controls.update();
 
-  if (timeMode === "flow") {
-    applyTimeOfDay(timeHours + dt * 1.4);
-  }
-
   for (let i = 0; i < waterPos.count; i++) {
     const x = waterPos.getX(i);
     const z = waterPos.getZ(i);
