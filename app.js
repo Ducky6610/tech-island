@@ -12,21 +12,25 @@ const UNITS = [
 ];
 
 const ISLAND_LAYOUT = [
-  { id: 1, unit: 1, q: 0, r: 0, skyY: 0, bIcon: "🏛️", bName: "數位科技博物館", signText: "數位科技博物館" },
-  { id: 2, unit: 1, q: 1, r: -1, skyY: 0, bIcon: "🏦", bName: "二進位編碼資料銀行", signText: "二進位資料銀行" },
-  { id: 3, unit: 2, q: -1, r: 0, skyY: 0, bIcon: "🏭", bName: "半導體晶圓科技廠", signText: "半導體晶圓科技廠" },
-  { id: 4, unit: 2, q: 0, r: -1, skyY: 0, bIcon: "🏢", bName: "雲端運算系統大樓", signText: "雲端運算系統大樓" },
-  { id: 5, unit: 2, q: -1, r: -1, skyY: 0, bIcon: "🧪", bName: "AI 量子研發總部", signText: "AI 量子研發總部" },
-  { id: 6, unit: 3, q: -2, r: 1, skyY: 0, bIcon: "🎬", bName: "數位多媒體文創大樓", signText: "數位多媒體文創館" },
-  { id: 7, unit: 3, q: -1, r: 1, skyY: 0, bIcon: "🏟️", bName: "電競網際娛樂巨蛋", signText: "電競網際娛樂巨蛋" },
-  { id: 8, unit: 3, q: -2, r: 0, skyY: 0, bIcon: "💻", bName: "軟體工程創客學院", signText: "軟體工程創客學院" },
-  { id: 9, unit: 3, q: -1, r: 2, skyY: 0, bIcon: "🏬", bName: "行動 App 商城中心", signText: "行動 App 商城中心" },
-  { id: 10, unit: 3, q: 0, r: 1, skyY: 0, bIcon: "⚖️", bName: "智慧財產管理局", signText: "智慧財產管理局" },
-  { id: 11, unit: 4, q: 1, r: 0, skyY: 0, bIcon: "📡", bName: "電信通訊衛星總局", signText: "電信通訊衛星總局" },
-  { id: 12, unit: 4, q: 2, r: -1, skyY: 0, bIcon: "🖧", bName: "光纖路由機房中心", signText: "光纖路由機房中心" },
-  { id: 13, unit: 4, q: 1, r: 1, skyY: 0, bIcon: "🚉", bName: "網路拓樸轉運總站", signText: "網路拓樸轉運總站" },
-  { id: 14, unit: 4, q: 2, r: 0, skyY: 0, bIcon: "🗼", bName: "OSI 七層協定摩天塔", signText: "OSI 協定摩天塔" },
-  { id: 15, unit: 4, q: 0, r: 2, skyY: 0, bIcon: "🧭", bName: "DNS 網域導航總署", signText: "DNS 網域導航總署" }
+  // 城區 01：數位概念市政區 (第 1 排)
+  { id: 1, unit: 1, gx: 0, gz: 0, bIcon: "🏛️", bName: "數位科技博物館", signText: "數位科技博物館" },
+  { id: 2, unit: 1, gx: 1, gz: 0, bIcon: "🏦", bName: "二進位編碼資料銀行", signText: "二進位資料銀行" },
+  // 城區 02：系統硬體科技園區 (第 1~2 排)
+  { id: 3, unit: 2, gx: 2, gz: 0, bIcon: "🏭", bName: "半導體晶圓科技廠", signText: "半導體晶圓科技廠" },
+  { id: 4, unit: 2, gx: 3, gz: 0, bIcon: "🏢", bName: "雲端運算系統大樓", signText: "雲端運算系統大樓" },
+  { id: 5, unit: 2, gx: 0, gz: 1, bIcon: "🧪", bName: "AI 量子研發總部", signText: "AI 量子研發總部" },
+  // 城區 03：軟體文創與智財特區 (第 2~3 排)
+  { id: 6, unit: 3, gx: 1, gz: 1, bIcon: "🎬", bName: "數位多媒體文創大樓", signText: "數位多媒體文創館" },
+  { id: 7, unit: 3, gx: 2, gz: 1, bIcon: "🏟️", bName: "電競網際娛樂巨蛋", signText: "電競網際娛樂巨蛋" },
+  { id: 8, unit: 3, gx: 3, gz: 1, bIcon: "💻", bName: "軟體工程創客學院", signText: "軟體工程創客學院" },
+  { id: 9, unit: 3, gx: 0, gz: 2, bIcon: "🏬", bName: "行動 App 商城中心", signText: "行動 App 商城中心" },
+  { id: 10, unit: 3, gx: 1, gz: 2, bIcon: "⚖️", bName: "智慧財產管理局", signText: "智慧財產管理局" },
+  // 城區 04：通訊網路樞紐特區 (第 3~4 排)
+  { id: 11, unit: 4, gx: 2, gz: 2, bIcon: "📡", bName: "電信通訊衛星總局", signText: "電信通訊衛星總局" },
+  { id: 12, unit: 4, gx: 3, gz: 2, bIcon: "🖧", bName: "光纖路由機房中心", signText: "光纖路由機房中心" },
+  { id: 13, unit: 4, gx: 0, gz: 3, bIcon: "🚉", bName: "網路拓樸轉運總站", signText: "網路拓樸轉運總站" },
+  { id: 14, unit: 4, gx: 1, gz: 3, bIcon: "🗼", bName: "OSI 七層協定摩天塔", signText: "OSI 協定摩天塔" },
+  { id: 15, unit: 4, gx: 2, gz: 3, bIcon: "🧭", bName: "DNS 網域導航總署", signText: "DNS 網域導航總署" }
 ];
 
 const COLLAB_LINKS = [
@@ -326,14 +330,15 @@ const labelsContainer = document.getElementById("labels");
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x72efdd, 0.0038);
 
-const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 520);
+// 模擬城市等角斜俯視角（Classic Isometric / SimCity Perspective）
+const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.5, 600);
 function getOverviewCamPos() {
   const w = window.innerWidth;
-  if (w <= 767) return new THREE.Vector3(0, 74, 118);
-  if (w <= 1180) return new THREE.Vector3(0, 64, 104);
-  return new THREE.Vector3(0, 56, 92);
+  if (w <= 767) return new THREE.Vector3(58, 68, 58);
+  if (w <= 1180) return new THREE.Vector3(52, 60, 52);
+  return new THREE.Vector3(46, 52, 46);
 }
-const DEFAULT_TARGET = new THREE.Vector3(0, 3.5, 3);
+const DEFAULT_TARGET = new THREE.Vector3(0, 0, 0);
 camera.position.copy(getOverviewCamPos());
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -407,43 +412,111 @@ waterMesh.position.y = -2.25;
 waterMesh.receiveShadow = true;
 scene.add(waterMesh);
 
-// 建立「數位科技智慧城市」大型綠意陸地基座、濱海堤岸與中央環城大道
+// 建立《模擬城市 SimCity》棋盤方格網狀城市地面（寬闊水泥地基、方正街區、路口斑馬線與綠化公園）
 const cityGroundGroup = new THREE.Group();
+const BLOCK_SIZE = 14.0;
+const ROAD_WIDTH = 2.8;
+const CITY_SPAN = BLOCK_SIZE * 4; // 56.0
+const CITY_ORIGIN = -CITY_SPAN / 2; // -28.0
+const movingCars = [];
+
 {
-  const harborWall = new THREE.Mesh(
-    new THREE.CylinderGeometry(64, 67, 2.2, 64),
-    new THREE.MeshStandardMaterial({ color: 0xfde68a, roughness: 0.55 })
-  );
-  harborWall.position.set(-2, -1.15, 3);
-  harborWall.receiveShadow = true;
-  cityGroundGroup.add(harborWall);
+  // 1. 城市整體方形地基與邊緣石護坡
+  const cityBaseGeo = new THREE.BoxGeometry(72, 2.5, 72);
+  const cityBaseMat = new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.7 });
+  const cityBase = new THREE.Mesh(cityBaseGeo, cityBaseMat);
+  cityBase.position.set(0, -1.25, 0);
+  cityBase.receiveShadow = true;
+  cityGroundGroup.add(cityBase);
 
-  const cityLawn = new THREE.Mesh(
-    new THREE.CylinderGeometry(62.5, 64, 0.52, 64),
-    new THREE.MeshStandardMaterial({ color: 0xb7e4c7, roughness: 0.58 })
-  );
-  cityLawn.position.set(-2, -0.18, 3);
-  cityLawn.receiveShadow = true;
-  cityGroundGroup.add(cityLawn);
+  // 2. 綠意草坪基底層
+  const lawnGeo = new THREE.BoxGeometry(69, 0.25, 69);
+  const lawnMat = new THREE.MeshStandardMaterial({ color: 0x86efac, roughness: 0.65 });
+  const lawn = new THREE.Mesh(lawnGeo, lawnMat);
+  lawn.position.set(0, 0.05, 0);
+  lawn.receiveShadow = true;
+  cityGroundGroup.add(lawn);
 
-  // 城市中央圓環大道與外環林蔭道
-  const innerRingRoad = new THREE.Mesh(
-    new THREE.RingGeometry(16.2, 19.2, 64),
-    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.65, side: THREE.DoubleSide })
-  );
-  innerRingRoad.rotation.x = -Math.PI / 2;
-  innerRingRoad.position.set(0, 0.09, 0);
-  innerRingRoad.receiveShadow = true;
-  cityGroundGroup.add(innerRingRoad);
+  // 3. 模擬城市 5x5 棋盤式雙向柏油馬路網格（南北向 5 條 + 東西向 5 條）
+  const roadMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+  const lineMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+  const zebraMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-  const outerRingRoad = new THREE.Mesh(
-    new THREE.RingGeometry(33.5, 36.2, 64),
-    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.65, side: THREE.DoubleSide })
-  );
-  outerRingRoad.rotation.x = -Math.PI / 2;
-  outerRingRoad.position.set(-2, 0.09, 3);
-  outerRingRoad.receiveShadow = true;
-  cityGroundGroup.add(outerRingRoad);
+  for (let i = 0; i <= 4; i++) {
+    const coord = CITY_ORIGIN + i * BLOCK_SIZE;
+
+    // 南北向主幹道（沿 Z 軸）
+    const roadNS = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH, 0.08, CITY_SPAN + ROAD_WIDTH), roadMat);
+    roadNS.position.set(coord, 0.14, 0);
+    roadNS.receiveShadow = true;
+    cityGroundGroup.add(roadNS);
+
+    // 南北向黃色虛線
+    const lineNS = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, CITY_SPAN), lineMat);
+    lineNS.position.set(coord, 0.16, 0);
+    cityGroundGroup.add(lineNS);
+
+    // 東西向主幹道（沿 X 軸）
+    const roadEW = new THREE.Mesh(new THREE.BoxGeometry(CITY_SPAN + ROAD_WIDTH, 0.08, ROAD_WIDTH), roadMat);
+    roadEW.position.set(0, 0.14, coord);
+    roadEW.receiveShadow = true;
+    cityGroundGroup.add(roadEW);
+
+    // 東西向黃色虛線
+    const lineEW = new THREE.Mesh(new THREE.BoxGeometry(CITY_SPAN, 0.09, 0.12), lineMat);
+    lineEW.position.set(0, 0.16, coord);
+    cityGroundGroup.add(lineEW);
+  }
+
+  // 4. 路口斑馬線與行人道設施
+  for (let ix = 0; ix <= 4; ix++) {
+    for (let iz = 0; iz <= 4; iz++) {
+      const cx = CITY_ORIGIN + ix * BLOCK_SIZE;
+      const cz = CITY_ORIGIN + iz * BLOCK_SIZE;
+      // 在十字路口四邊加上白色斑馬線
+      for (const [ox, oz, w, d] of [
+        [0, ROAD_WIDTH * 0.72, ROAD_WIDTH * 0.8, 0.45],
+        [0, -ROAD_WIDTH * 0.72, ROAD_WIDTH * 0.8, 0.45],
+        [ROAD_WIDTH * 0.72, 0, 0.45, ROAD_WIDTH * 0.8],
+        [-ROAD_WIDTH * 0.72, 0, 0.45, ROAD_WIDTH * 0.8]
+      ]) {
+        const zebra = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, d), zebraMat);
+        zebra.position.set(cx + ox, 0.17, cz + oz);
+        cityGroundGroup.add(zebra);
+      }
+    }
+  }
+
+  // 5. 街區行駛的模擬城市小汽車（依車道巡航）
+  const carColors = [0xef4444, 0x3b82f6, 0xf59e0b, 0x10b981, 0xec4899, 0x8b5cf6, 0xffffff];
+  for (let c = 0; c < 12; c++) {
+    const isNS = c % 2 === 0;
+    const laneIdx = Math.floor(Math.random() * 5);
+    const laneCoord = CITY_ORIGIN + laneIdx * BLOCK_SIZE + (c % 4 < 2 ? 0.65 : -0.65);
+    const carGroup = new THREE.Group();
+    const cColor = carColors[c % carColors.length];
+
+    const body = new THREE.Mesh(
+      new THREE.BoxGeometry(isNS ? 0.75 : 1.35, 0.42, isNS ? 1.35 : 0.75),
+      new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.35 })
+    );
+    body.position.y = 0.28;
+    const roof = new THREE.Mesh(
+      new THREE.BoxGeometry(isNS ? 0.65 : 0.75, 0.35, isNS ? 0.75 : 0.65),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25 })
+    );
+    roof.position.y = 0.58;
+    carGroup.add(body, roof);
+    cityGroundGroup.add(carGroup);
+
+    movingCars.push({
+      group: carGroup,
+      isNS,
+      laneCoord,
+      pos: (Math.random() - 0.5) * CITY_SPAN,
+      speed: (isNS ? 1 : -1) * (4.5 + Math.random() * 3.5)
+    });
+  }
 }
 scene.add(cityGroundGroup);
 
@@ -492,17 +565,15 @@ scene.add(stars);
 // ==========================================
 // 5. 建立 15 座城市主題機關建築與街區廣場
 // ==========================================
-const HEX_RADIUS = 5.4;
-const HEX_GAP = 1.92;
 const islandGroups = new Map();
 const pickableMeshes = [];
 const nightBeaconMaterials = [];
 const animatedProps = [];
 
-function axialToWorld(q, r) {
-  const size = HEX_RADIUS * HEX_GAP;
-  const x = size * Math.sqrt(3) * (q + r / 2);
-  const z = size * (3 / 2) * r;
+// 模擬城市 4x4 方形街區座標映射函式
+function gridToWorld(gx, gz) {
+  const x = (gx - 1.5) * BLOCK_SIZE;
+  const z = (gz - 1.5) * BLOCK_SIZE;
   return new THREE.Vector3(x, 0, z);
 }
 
@@ -992,10 +1063,10 @@ function buildChapterLandmark(chId, unitHex, itemMeta, unitColorCss) {
   return g;
 }
 
-// 建立 15 座城市街區廣場與對應主題建築物
+// 建立 15 座《模擬城市》方正街區街廓與主題機關建築物
 ISLAND_LAYOUT.forEach((item, index) => {
   const unit = getUnit(item.unit);
-  const pos = axialToWorld(item.q, item.r);
+  const pos = gridToWorld(item.gx, item.gz);
   pos.y = 0;
 
   const group = new THREE.Group();
@@ -1009,50 +1080,61 @@ ISLAND_LAYOUT.forEach((item, index) => {
     bIcon: item.bIcon
   };
 
-  // 1. 城市街區外圍人行道基座（圓潤石材路緣）
-  const curbGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.95, HEX_RADIUS * 0.97, 0.36, 48);
-  const curbMat = makeMat(0xe2e8f0, { roughness: 0.55 });
+  // 1. 模擬城市方正街區水泥地基（Block Foundation）
+  const blockW = 10.8;
+  const blockD = 10.8;
+  const curbGeo = new THREE.BoxGeometry(blockW, 0.32, blockD);
+  const curbMat = makeMat(0xcbd5e1, { roughness: 0.65 });
   const curb = new THREE.Mesh(curbGeo, curbMat);
-  curb.position.y = 0.18;
+  curb.position.y = 0.16;
   curb.receiveShadow = true;
   group.add(curb);
 
-  // 2. 城區代表色發光邊框與迎賓廣場地磚
-  const districtPlazaGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.88, HEX_RADIUS * 0.90, 0.48, 48);
-  const districtPlazaMat = makeMat(unit.hex, { roughness: 0.42 });
-  const districtPlaza = new THREE.Mesh(districtPlazaGeo, districtPlazaMat);
-  districtPlaza.position.y = 0.28;
-  districtPlaza.receiveShadow = true;
-  group.add(districtPlaza);
-
-  const innerTileGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.78, HEX_RADIUS * 0.80, 0.54, 48);
-  const innerTileMat = makeMat(0xfffdf9, { roughness: 0.48 });
+  // 2. 街區人行道紅磚/石板鋪面與綠化草皮帶
+  const innerTileGeo = new THREE.BoxGeometry(blockW - 0.7, 0.42, blockD - 0.7);
+  const innerTileMat = makeMat(0xf1f5f9, { roughness: 0.5 });
   const innerTile = new THREE.Mesh(innerTileGeo, innerTileMat);
-  innerTile.position.y = 0.32;
+  innerTile.position.y = 0.22;
   innerTile.receiveShadow = true;
   group.add(innerTile);
 
-  // 建築正門迎賓紅毯步道與斑馬線
+  // 街區周邊綠化草皮與小矮樹籬
+  const hedgeMat = makeMat(0x4ade80, { roughness: 0.6 });
+  for (const [hx, hz, hw, hd] of [
+    [-blockW * 0.4, 0, 0.6, blockD * 0.78],
+    [blockW * 0.4, 0, 0.6, blockD * 0.78],
+    [0, -blockD * 0.4, blockW * 0.78, 0.6]
+  ]) {
+    const hedge = new THREE.Mesh(new THREE.BoxGeometry(hw, 0.35, hd), hedgeMat);
+    hedge.position.set(hx, 0.38, hz);
+    group.add(hedge);
+  }
+
+  // 街角消防栓與垃圾桶等 SimCity 城市細節
+  const hydrant = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.42, 12), makeMat(0xef4444));
+  hydrant.position.set(blockW * 0.42, 0.42, blockD * 0.42);
+  group.add(hydrant);
+
+  // 建築正門迎賓鋪面（連接前方幹道斑馬線）
   const entranceWalkway = new THREE.Mesh(
-    new THREE.BoxGeometry(1.45, 0.08, 2.2),
+    new THREE.BoxGeometry(2.4, 0.08, 2.2),
     makeMat(unit.hex, { roughness: 0.4 })
   );
-  entranceWalkway.position.set(0, 0.58, 2.45);
+  entranceWalkway.position.set(0, 0.44, 4.4);
   entranceWalkway.receiveShadow = true;
   group.add(entranceWalkway);
 
-  // 圓滑發光選取外框環
-  const rimGeo = new THREE.RingGeometry(HEX_RADIUS * 0.81, HEX_RADIUS * 0.88, 48);
-  rimGeo.rotateX(-Math.PI / 2);
-  const rimMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+  // 模擬城市方框選取指示燈
+  const rimGeo = new THREE.BoxGeometry(blockW + 0.35, 0.06, blockD + 0.35);
+  const rimMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, wireframe: true });
   const rim = new THREE.Mesh(rimGeo, rimMat);
-  rim.position.y = 0.61;
+  rim.position.y = 0.48;
   group.add(rim);
   group.userData.rimMat = rimMat;
 
   // 建立該章節專屬主題建築物與皇冠
   const landmark = buildChapterLandmark(item.id, unit.hex, item, unit.color);
-  landmark.position.y = 0.58;
+  landmark.position.y = 0.44;
   group.add(landmark);
   group.userData.crown = landmark.userData.crown;
 
@@ -1091,7 +1173,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
 });
 
 // ==========================================
-// 6. 建立 20 條城市柏油馬路幹道、車道標線與自動駕駛資料小巴士
+// 6. 建立 20 條城市跨區高架光軌幹道與穿梭小列車（連接各街區）
 // ==========================================
 const linksGroup = new THREE.Group();
 scene.add(linksGroup);
@@ -1104,38 +1186,15 @@ COLLAB_LINKS.forEach((link, idx) => {
   if (!gA || !gB) return;
 
   const pA = gA.position.clone();
-  pA.y = 0.22;
+  pA.y = 0.55;
   const pB = gB.position.clone();
-  pB.y = 0.22;
+  pB.y = 0.55;
   const mid = pA.clone().add(pB).multiplyScalar(0.5);
-  const dist = pA.distanceTo(pB);
-  const angle = Math.atan2(pB.x - pA.x, pB.z - pA.z);
+  mid.y = 1.65;
 
-  // 1. 地面城市柏油馬路幹道與白色車道邊線
-  const roadStrip = new THREE.Mesh(
-    new THREE.BoxGeometry(1.35, 0.08, dist),
-    new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.72 })
-  );
-  roadStrip.position.set(mid.x, 0.12, mid.z);
-  roadStrip.rotation.y = angle;
-  roadStrip.receiveShadow = true;
-  linksGroup.add(roadStrip);
-
-  const centerLine = new THREE.Mesh(
-    new THREE.BoxGeometry(0.14, 0.09, dist * 0.86),
-    new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.75 })
-  );
-  centerLine.position.set(mid.x, 0.13, mid.z);
-  centerLine.rotation.y = angle;
-  linksGroup.add(centerLine);
-
-  // 2. 低空智慧導航光軌（選取建築時高亮顯示跨領域關聯）
-  const navCurve = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3(pA.x, 0.45, pA.z),
-    new THREE.Vector3(mid.x, 0.65, mid.z),
-    new THREE.Vector3(pB.x, 0.45, pB.z)
-  );
-  const geo = new THREE.TubeGeometry(navCurve, 32, 0.065, 12, false);
+  // 跨街區城市捷運/高架資訊導軌
+  const navCurve = new THREE.QuadraticBezierCurve3(pA, mid, pB);
+  const geo = new THREE.TubeGeometry(navCurve, 36, 0.08, 12, false);
   const baseColor = rainbowPalette[idx % rainbowPalette.length];
   const mat = new THREE.MeshStandardMaterial({
     color: baseColor,
@@ -1148,19 +1207,19 @@ COLLAB_LINKS.forEach((link, idx) => {
   const line = new THREE.Mesh(geo, mat);
   linksGroup.add(line);
 
-  // 3. 穿梭於城市馬路上的 Q 版自動駕駛資料小巴士
+  // 穿梭於高架軌道上的 Q 版捷運動能資料艙
   const dot = new THREE.Group();
-  const busBody = new THREE.Mesh(
-    new THREE.BoxGeometry(0.46, 0.32, 0.72),
-    new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.3 })
+  const trainBody = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.24, 0.55, 12, 16),
+    new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.28 })
   );
-  busBody.position.y = 0.22;
-  const busWin = new THREE.Mesh(
-    new THREE.BoxGeometry(0.48, 0.16, 0.46),
-    new THREE.MeshBasicMaterial({ color: 0xe0f2fe })
+  trainBody.rotation.x = Math.PI / 2;
+  const trainCockpit = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
   );
-  busWin.position.y = 0.26;
-  dot.add(busBody, busWin);
+  trainCockpit.position.set(0, 0.08, 0.28);
+  dot.add(trainBody, trainCockpit);
   linksGroup.add(dot);
 
   linkObjects.push({ ...link, baseColor, curve: navCurve, line, mat, dot, t: Math.random() });
@@ -3607,6 +3666,20 @@ function animate() {
       obj.dot.rotation.y += dt * 3;
     });
   }
+
+  // 模擬城市馬路車輛動態更新（小汽車沿車道巡航）
+  movingCars.forEach(car => {
+    car.pos += dt * car.speed;
+    const halfSpan = CITY_SPAN * 0.48;
+    if (car.pos > halfSpan) car.pos = -halfSpan;
+    if (car.pos < -halfSpan) car.pos = halfSpan;
+
+    if (car.isNS) {
+      car.group.position.set(car.laneCoord, 0.16, car.pos);
+    } else {
+      car.group.position.set(car.pos, 0.16, car.laneCoord);
+    }
+  });
 
   // 城市街區廣場維持平穩在地面（y = 0），並收集 2D 螢幕座標進行「防重疊自動避讓演算法」
   const visibleLabels = [];
