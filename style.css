@@ -632,78 +632,9 @@ button, input {
   transition: width 0.35s ease;
 }
 
-/* 底部 24 小時光影控制列 */
-#timebar {
-  position: fixed;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 18px;
-  background: rgba(255, 250, 252, 0.92);
-  border: 2px solid var(--border-soft);
-  border-radius: 999px;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-}
-
-.clock {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 125px;
-  font-weight: 800;
-}
-
-.clock b {
-  font-size: 15.5px;
-}
-
-.clock small {
-  font-size: 13px;
-  color: var(--ink-sub);
-}
-
-.presets, .modes {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.presets button, .modes button {
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border-soft);
-  background: #ffffff;
-  font-size: 13.5px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.14s;
-}
-
-.presets button:hover, .modes button:hover {
-  background: #fdf2f8;
-  border-color: #f9a8d4;
-}
-
-.presets button.on, .modes button.on {
-  background: #f472b6;
-  border-color: #f472b6;
-  color: #ffffff;
-}
-
-#time-slider {
-  width: 120px;
-  accent-color: #f472b6;
-  cursor: pointer;
-}
-
 #hint {
   position: fixed;
-  bottom: 70px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 14;
@@ -1977,24 +1908,6 @@ button, input {
     font-size: 15px;
   }
 
-  /* 底部時間控制列精簡化，隱藏佔寬度的四個預設文字鈕，避免與左下角學伴看板碰撞 */
-  #timebar {
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: auto;
-    right: 14px;
-    transform: none;
-    padding: 7px 15px;
-    gap: 10px;
-  }
-
-  #timebar .presets {
-    display: none;
-  }
-
-  #time-slider {
-    width: 95px;
-  }
-
   /* 左下角學伴即時看板精簡高度（只顯示最新 2 則動態），不遮擋島嶼 */
   #live-ticker {
     bottom: max(12px, env(safe-area-inset-bottom));
@@ -2013,8 +1926,7 @@ button, input {
   }
 
   /* 當開啟關卡教學面板時，在平板與手機自動收起底部浮動小工具，畫面清爽不重疊 */
-  body.panel-open #live-ticker,
-  body.panel-open #timebar {
+  body.panel-open #live-ticker {
     opacity: 0;
     pointer-events: none;
     transform: translateY(20px);
@@ -2305,71 +2217,9 @@ button, input {
     max-width: 105px;
   }
 
-  /* 底部時間控制列：手機端預設為精巧時間小膠囊 */
-  #timebar {
-    bottom: max(10px, env(safe-area-inset-bottom));
-    left: auto;
-    right: 8px;
-    transform: none;
-    padding: 7px 12px;
-    border-radius: 999px;
-    z-index: 35;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  #timebar .clock {
-    cursor: pointer;
-    gap: 5px;
-    font-size: 13px;
-  }
-
-  .timebar-arrow {
-    font-size: 11px;
-    color: var(--ink-sub);
-    transition: transform 0.2s;
-  }
-
-  #timebar.collapsed .timebar-arrow {
-    transform: rotate(180deg);
-  }
-
-  #timebar.collapsed .timebar-body {
-    display: none;
-  }
-
-  #timebar:not(.collapsed) {
-    right: 8px;
-    bottom: 56px;
-    width: min(285px, calc(100vw - 16px));
-    padding: 12px 15px;
-    border-radius: 24px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    box-shadow: 0 10px 30px rgba(180, 100, 140, 0.28);
-  }
-
-  #timebar:not(.collapsed) .timebar-body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  #timebar:not(.collapsed) .presets {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
-  }
-
-  #timebar:not(.collapsed) .presets button {
-    padding: 6px;
-    font-size: 11.5px;
-  }
-
   /* 當學生手指在 3D 場景旋轉探索時，周圍按鈕自動變淡，提供無遮擋 3D 全景體驗 */
   body.touch-exploring #topbar,
-  body.touch-exploring #live-ticker,
-  body.touch-exploring #timebar {
+  body.touch-exploring #live-ticker {
     opacity: 0.18;
     pointer-events: none;
     transition: opacity 0.18s;
@@ -2416,8 +2266,7 @@ button, input {
   }
 
   /* 當開啟關卡任務抽屜時，所有浮動小工具 100% 完全自動隱藏，讓出整面螢幕給學生閱讀 */
-  body.panel-open #live-ticker,
-  body.panel-open #timebar {
+  body.panel-open #live-ticker {
     display: none !important;
   }
 

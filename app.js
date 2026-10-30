@@ -88,7 +88,7 @@ const MASCOT_QUIPS = [
   "點開「📖 知識寶箱」讀完重點按『領取 +15 XP』，經驗值升級超快！",
   "統測必考秘訣：GIGO 是「垃圾進、垃圾出」，輸入正確資料才有正確資訊！",
   "想刺激一下嗎？點右上角粉紅色的「⚔️ 魔王戰」，打敗數位魔王贏取大把金幣 💰！",
-  "試試底部的「🌅 蜜桃晨光 / ☀️ 蘇打白天 / 🌇 橘子黃昏 / 🌙 螢光星夜」，城市建築的霓虹招牌超美喔！"
+  "旋轉地圖觀察街道上奔馳的彩色小汽車，探索整個模擬城市吧！🚗"
 ];
 
 // ==========================================
@@ -155,8 +155,6 @@ let selectedId = null;
 let activeUnitFilter = null;
 let activeTab = "sections";
 let showLinks = true;
-let timeHours = 12;
-let timeMode = "manual";
 let tourTimer = null;
 
 // ==========================================
@@ -1292,89 +1290,17 @@ document.getElementById("btn-mascot-Wave").addEventListener("click", () => {
   triggerMascotSpeech();
 });
 
-// ==========================================
-// 8. 24 小時夢幻糖果光影切換系統
-// ==========================================
-const clockIcon = document.getElementById("clock-icon");
-const clockTime = document.getElementById("clock-time");
-const clockLabel = document.getElementById("clock-label");
-const timeSlider = document.getElementById("time-slider");
-
-function applyTimeOfDay(hours) {
-  timeHours = ((hours % 24) + 24) % 24;
-  timeSlider.value = timeHours;
-
-  const hh = String(Math.floor(timeHours)).padStart(2, "0");
-  const mm = String(Math.floor((timeHours % 1) * 60)).padStart(2, "0");
-  clockTime.textContent = `${hh}:${mm}`;
-
-  const sunAngle = ((timeHours - 6) / 24) * Math.PI * 2;
-  const sunY = Math.sin(sunAngle);
-  const sunX = Math.cos(sunAngle);
-  dirLight.position.set(sunX * 55, Math.max(10, Math.abs(sunY) * 60 + 10), 28);
-
-  let skyHex, waterHex, sunHex, hemiSky, dirInt, starOpacity, periodName, icon;
-
-  if (timeHours >= 5 && timeHours < 8) {
-    // 蜜桃晨光
-    skyHex = 0xffd6e0;
-    waterHex = 0x90e0ef;
-    sunHex = 0xfff0f3;
-    hemiSky = 0xffe5ec;
-    dirInt = 1.25;
-    starOpacity = 0.05;
-    periodName = "蜜桃晨光";
-    icon = "🌅";
-  } else if (timeHours >= 8 && timeHours < 16.5) {
-    // 櫻花蘇打白天（柔和粉彩天空 + 粉藍蘇打海）
-    skyHex = 0xfce7f3;
-    waterHex = 0x7dd3fc;
-    sunHex = 0xfffdf7;
-    hemiSky = 0xffffff;
-    dirInt = 1.38;
-    starOpacity = 0;
-    periodName = "櫻花白天";
-    icon = "🌸";
-  } else if (timeHours >= 16.5 && timeHours < 19.2) {
-    // 晚霞粉橘黃昏
-    skyHex = 0xfbcfe8;
-    waterHex = 0xa5b4fc;
-    sunHex = 0xfed7aa;
-    hemiSky = 0xfce7f3;
-    dirInt = 1.15;
-    starOpacity = 0.25;
-    periodName = "粉霞黃昏";
-    icon = "🌇";
-  } else {
-    // 薰衣草星夜
-    skyHex = 0x3b2d54;
-    waterHex = 0x312e81;
-    sunHex = 0xf472b6;
-    hemiSky = 0x4c1d95;
-    dirInt = 0.72;
-    starOpacity = 0.9;
-    periodName = "紫晶星夜";
-    icon = "🌙";
-  }
-
-  clockIcon.textContent = icon;
-  clockLabel.textContent = periodName;
-
-  renderer.setClearColor(skyHex);
-  scene.fog.color.setHex(skyHex);
-  waterMat.color.setHex(waterHex);
-  dirLight.color.setHex(sunHex);
-  dirLight.intensity = dirInt;
-  hemiLight.color.setHex(hemiSky);
-  starMat.opacity = starOpacity;
-
-  const isNight = starOpacity > 0.5;
-  nightBeaconMaterials.forEach(m => {
-    m.emissiveIntensity = isNight ? 1.1 : 0.38;
-  });
-}
-
-applyTimeOfDay(12);
+// 固定為晴朗明亮的蘇打白天城市光影
+renderer.setClearColor(0xfce7f3);
+scene.fog.color.setHex(0xfce7f3);
+waterMat.color.setHex(0x7dd3fc);
+dirLight.color.setHex(0xfffdf7);
+dirLight.intensity = 1.38;
+hemiLight.color.setHex(0xffffff);
+starMat.opacity = 0;
+nightBeaconMaterials.forEach(m => {
+  m.emissiveIntensity = 0.38;
+});
 
 // ==========================================
 // 9. 關卡選取、闖關任務書面板與星級計算
@@ -3449,16 +3375,6 @@ if (tickerHead && liveTickerEl) {
   });
 }
 
-// 手機端時間控制器點擊展開／收合
-const timebarEl = document.getElementById("timebar");
-const timebarToggle = document.getElementById("timebar-toggle");
-if (timebarToggle && timebarEl) {
-  timebarToggle.addEventListener("click", () => {
-    playSfx("pop");
-    timebarEl.classList.toggle("collapsed");
-  });
-}
-
 // ==========================================
 // 11. 工具列與滑鼠/鍵盤事件綁定
 // ==========================================
@@ -3483,48 +3399,12 @@ btnSound.addEventListener("click", () => {
   if (soundEnabled) playSfx("coin");
 });
 
-const modeRealBtn = document.getElementById("mode-real");
-const modeFlowBtn = document.getElementById("mode-flow");
-
-document.querySelectorAll("#timebar .presets button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    playSfx("pop");
-    timeMode = "manual";
-    modeRealBtn.classList.remove("on");
-    modeFlowBtn.classList.remove("on");
-    applyTimeOfDay(Number(btn.dataset.t));
-  });
-});
-
-timeSlider.addEventListener("input", () => {
-  timeMode = "manual";
-  modeRealBtn.classList.remove("on");
-  modeFlowBtn.classList.remove("on");
-  applyTimeOfDay(Number(timeSlider.value));
-});
-
-modeRealBtn.addEventListener("click", () => {
-  playSfx("pop");
-  timeMode = "real";
-  modeRealBtn.classList.add("on");
-  modeFlowBtn.classList.remove("on");
-  const now = new Date();
-  applyTimeOfDay(now.getHours() + now.getMinutes() / 60);
-});
-
-modeFlowBtn.addEventListener("click", () => {
-  playSfx("pop");
-  timeMode = timeMode === "flow" ? "manual" : "flow";
-  modeFlowBtn.classList.toggle("on", timeMode === "flow");
-  modeRealBtn.classList.remove("on");
-});
-
 // Raycaster 拾取
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let downPos = { x: 0, y: 0 };
 
-// 手機端觸控探索 3D 小島時，自動淡化按鈕並自動收合浮動視窗
+// 手機端觸控探索 3D 城市時，自動淡化按鈕並自動收合浮動視窗
 renderer.domElement.addEventListener("touchstart", () => {
   document.body.classList.add("touch-exploring");
   if (topbarCollapsible && topbarCollapsible.classList.contains("open")) {
@@ -3536,7 +3416,6 @@ renderer.domElement.addEventListener("touchstart", () => {
   }
   if (window.innerWidth <= 768) {
     if (liveTickerEl) liveTickerEl.classList.add("collapsed");
-    if (timebarEl) timebarEl.classList.add("collapsed");
   }
 }, { passive: true });
 

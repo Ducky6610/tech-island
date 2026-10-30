@@ -96,29 +96,6 @@
     </div>
   </div>
 
-  <!-- 夢幻時間軸（手機端支援迷你時鐘膠囊收合） -->
-  <div id="timebar" class="collapsed">
-    <div class="clock" id="timebar-toggle" title="點擊展開／收起時間控制器">
-      <span id="clock-icon">☀️</span>
-      <b id="clock-time">12:00</b>
-      <small id="clock-label">晴朗白天</small>
-      <span class="timebar-arrow">▾</span>
-    </div>
-    <div class="timebar-body">
-      <div class="presets">
-        <button data-t="6">🌅 蜜桃晨光</button>
-        <button data-t="12">☀️ 蘇打白天</button>
-        <button data-t="17.6">🌇 橘子黃昏</button>
-        <button data-t="21">🌙 螢光星夜</button>
-      </div>
-      <input type="range" id="time-slider" min="0" max="24" step="0.05" value="12" aria-label="時間" />
-      <div class="modes">
-        <button id="mode-real" title="依照現在時間變化">🕒 即時</button>
-        <button id="mode-flow" title="快速流轉一天">⏩ 奇幻流轉</button>
-      </div>
-    </div>
-  </div>
-
   <aside id="panel" class="hidden" aria-live="polite"></aside>
   <div id="list-view" class="hidden"></div>
   <div id="tour-card" class="hidden"></div>
