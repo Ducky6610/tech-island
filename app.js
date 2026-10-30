@@ -1841,11 +1841,13 @@ function buildChapterLandmark(chId, unitHex, itemMeta, unitColorCss) {
     }
   }
 
-  // 掛載 3D 立體中文機關建築招牌（如「⚖️ 智慧財產管理局」）
+  // 掛載 3D 立體中文機關建築招牌（預設隱藏，點擊該棟建築時才顯示）
   const signText = itemMeta?.signText || `第 ${chId} 館`;
   const signMesh = createBuildingSignboard(signText, unitColorCss);
   signMesh.position.set(0, signY, signZ);
+  signMesh.visible = false;
   g.add(signMesh);
+  g.userData.signMesh = signMesh;
 
   // 關卡滿 3 星時的圓潤黃金珍珠皇冠
   const crown = new THREE.Group();
@@ -1942,6 +1944,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
   landmark.position.y = 0.44;
   group.add(landmark);
   group.userData.crown = landmark.userData.crown;
+  group.userData.signMesh = landmark.userData.signMesh;
 
   group.traverse(child => {
     if (child.isMesh) {
@@ -1953,10 +1956,11 @@ ISLAND_LAYOUT.forEach((item, index) => {
   scene.add(group);
   islandGroups.set(item.id, group);
 
-  // 建立城市建築雙層路牌標籤（上層：專屬建築名稱 + 星級；下層：對應章節主題）
+  // 建立城市建築雙層路牌標籤（預設隱藏，點擊該棟大樓後才顯示）
   const chData = chapters[item.id] || { title: `第 ${item.id} 章`, icon: "📘" };
   const label = document.createElement("div");
   label.className = "island-label";
+  label.style.display = "none";
   label.style.setProperty("--unit-color", unit.color);
   label.dataset.id = item.id;
   label.innerHTML = `
@@ -2205,6 +2209,9 @@ function updateIslandHighlights() {
     label.classList.toggle("active", isSelected);
     label.classList.toggle("dimmed", (!unitMatch && !isSelected) || (Boolean(selectedId) && !isSelected && window.innerWidth <= 1180));
     group.userData.rimMat.opacity = isSelected ? 0.98 : 0.32;
+    if (group.userData.signMesh) {
+      group.userData.signMesh.visible = isSelected;
+    }
   });
 
   linkObjects.forEach(obj => {
@@ -4238,6 +4245,15 @@ renderer.domElement.addEventListener("pointerdown", e => {
   downPos = { x: e.clientX, y: e.clientY };
 });
 
+renderer.domElement.addEventListener("pointermove", e => {
+  if (e.buttons !== 0) return;
+  pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(pickableMeshes, false);
+  renderer.domElement.style.cursor = hits.length > 0 ? "pointer" : "grab";
+});
+
 renderer.domElement.addEventListener("pointerup", e => {
   if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) return;
   pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -4375,8 +4391,12 @@ function animate() {
 
   islandGroups.forEach((group, id) => {
     group.position.y = 0;
-    projVec.set(group.position.x, group.position.y + 4.65, group.position.z).project(camera);
     const label = group.userData.labelEl;
+    if (id !== selectedId) {
+      label.style.display = "none";
+      return;
+    }
+    projVec.set(group.position.x, group.position.y + 4.65, group.position.z).project(camera);
     if (projVec.z > 1 || projVec.z < -1) {
       label.style.display = "none";
     } else {
