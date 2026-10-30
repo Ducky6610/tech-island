@@ -326,14 +326,14 @@ const labelsContainer = document.getElementById("labels");
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x72efdd, 0.0038);
 
-const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 420);
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 520);
 function getOverviewCamPos() {
   const w = window.innerWidth;
-  if (w <= 767) return new THREE.Vector3(0, 52, 84);
-  if (w <= 1180) return new THREE.Vector3(0, 44, 74);
-  return new THREE.Vector3(0, 38, 66);
+  if (w <= 767) return new THREE.Vector3(0, 74, 118);
+  if (w <= 1180) return new THREE.Vector3(0, 64, 104);
+  return new THREE.Vector3(0, 56, 92);
 }
-const DEFAULT_TARGET = new THREE.Vector3(0, 3.5, 2);
+const DEFAULT_TARGET = new THREE.Vector3(0, 3.5, 3);
 camera.position.copy(getOverviewCamPos());
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -350,8 +350,8 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 controls.maxPolarAngle = Math.PI / 1.88;
 controls.minPolarAngle = 0.22;
-controls.minDistance = 15;
-controls.maxDistance = 135;
+controls.minDistance = 16;
+controls.maxDistance = 190;
 controls.target.copy(DEFAULT_TARGET);
 
 let camAnim = null;
@@ -371,12 +371,12 @@ const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 1.05);
 scene.add(hemiLight);
 
 const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.45);
-dirLight.position.set(35, 58, 32);
+dirLight.position.set(45, 75, 42);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.set(2048, 2048);
 dirLight.shadow.camera.near = 10;
-dirLight.shadow.camera.far = 160;
-const d = 55;
+dirLight.shadow.camera.far = 220;
+const d = 88;
 dirLight.shadow.camera.left = -d;
 dirLight.shadow.camera.right = d;
 dirLight.shadow.camera.top = d;
@@ -384,7 +384,7 @@ dirLight.shadow.camera.bottom = -d;
 scene.add(dirLight);
 
 // 絲滑柔波粉藍蘇打海洋（無稜角平滑法線）
-const waterGeo = new THREE.PlaneGeometry(340, 340, 64, 64);
+const waterGeo = new THREE.PlaneGeometry(520, 520, 64, 64);
 waterGeo.rotateX(-Math.PI / 2);
 const waterPos = waterGeo.attributes.position;
 const waterBaseY = new Float32Array(waterPos.count);
@@ -453,10 +453,10 @@ const stars = new THREE.Points(starGeo, starMat);
 scene.add(stars);
 
 // ==========================================
-// 5. 建立 15 座圓潤馬卡龍軟墊島與無稜角糖果玩具地標
+// 5. 建立 15 座寬敞錯落的漂浮浮空島與無稜角糖果玩具地標
 // ==========================================
-const HEX_RADIUS = 5.6;
-const HEX_GAP = 1.18;
+const HEX_RADIUS = 5.4;
+const HEX_GAP = 1.92; // 大幅拉開島與島之間的空中距離，避免島體與路牌互相擁擠重疊
 const islandGroups = new Map();
 const pickableMeshes = [];
 const nightBeaconMaterials = [];
@@ -962,7 +962,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
   scene.add(group);
   islandGroups.set(item.id, group);
 
-  // 建立 Q 版關卡路牌標籤（含 3 顆星進度）
+  // 建立 Q 版關卡路牌標籤（單行精巧膠囊＋3 顆星進度，不遮擋鄰島）
   const chData = chapters[item.id] || { title: `第 ${item.id} 章`, icon: "📘" };
   const label = document.createElement("div");
   label.className = "island-label";
@@ -970,10 +970,10 @@ ISLAND_LAYOUT.forEach((item, index) => {
   label.dataset.id = item.id;
   label.innerHTML = `
     <div class="island-label-top">
-      <span class="ch-badge">關卡 ${String(item.id).padStart(2, "0")}</span>
-      <span>${chData.icon} ${chData.title}</span>
+      <span class="ch-badge">${String(item.id).padStart(2, "0")}</span>
+      <span class="ch-title-text">${chData.icon} ${chData.title}</span>
+      <span class="island-stars" id="istars-${item.id}">☆☆☆</span>
     </div>
-    <div class="island-stars" id="istars-${item.id}">☆☆☆</div>
     <div class="island-peers-row" id="ipeers-${item.id}"></div>
   `;
   label.addEventListener("click", e => {
@@ -3467,20 +3467,109 @@ function animate() {
     });
   }
 
-  // 先更新 15 座天空浮空島的上下漂浮高度，讓島上的博士與學伴能精準踩在島面上
-  islandGroups.forEach(group => {
+  // 先更新 15 座天空浮空島的上下漂浮高度，並收集 2D 螢幕座標進行「防重疊自動避讓演算法」
+  const visibleLabels = [];
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const isCompactScreen = vw <= 860;
+  const estLabelW = isCompactScreen ? 152 : 186;
+  const estLabelH = isCompactScreen ? 32 : 38;
+
+  islandGroups.forEach((group, id) => {
     const baseY = group.userData.baseY ?? 4.0;
     group.position.y = baseY + Math.sin(elapsed * 1.45 + group.userData.phase) * 0.48;
-    projVec.set(group.position.x, group.position.y + 3.9, group.position.z).project(camera);
+    projVec.set(group.position.x, group.position.y + 4.15, group.position.z).project(camera);
     const label = group.userData.labelEl;
-    if (projVec.z > 1) {
+    if (projVec.z > 1 || projVec.z < -1) {
       label.style.display = "none";
     } else {
       label.style.display = "flex";
-      const x = (projVec.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-projVec.y * 0.5 + 0.5) * window.innerHeight;
-      label.style.transform = `translate(-50%, -100%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      const rawX = (projVec.x * 0.5 + 0.5) * vw;
+      const rawY = (-projVec.y * 0.5 + 0.5) * vh;
+      const w = label.offsetWidth || estLabelW;
+      const h = label.offsetHeight || estLabelH;
+      visibleLabels.push({
+        id,
+        group,
+        label,
+        rawX,
+        rawY,
+        x: rawX,
+        y: rawY,
+        z: projVec.z,
+        w,
+        h,
+      });
     }
+  });
+
+  // 2D 螢幕空間防重疊推開演算（迭代 4 次，當低視角旋轉導致兩座島名靠近時自動上下左右錯開）
+  for (let iter = 0; iter < 4; iter++) {
+    for (let i = 0; i < visibleLabels.length; i++) {
+      const a = visibleLabels[i];
+      for (let j = i + 1; j < visibleLabels.length; j++) {
+        const b = visibleLabels[j];
+        const minDx = (a.w + b.w) * 0.5 + 10;
+        const minDy = (a.h + b.h) * 0.5 + 8;
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+        if (absDx < minDx && absDy < minDy) {
+          if (absDx < 0.1 && absDy < 0.1) {
+            dx = (b.id - a.id) * 2.5;
+            dy = (b.id % 2 === 0 ? 1 : -1) * 2.5;
+          }
+          const overlapX = minDx - Math.abs(dx);
+          const overlapY = minDy - Math.abs(dy);
+          // 選取中的關卡保持錨定優先權，其餘標籤平滑讓位
+          const weightA = a.id === selectedId ? 0.15 : b.id === selectedId ? 0.85 : 0.5;
+          const weightB = 1 - weightA;
+
+          if (overlapY * 1.25 <= overlapX) {
+            const signY = dy >= 0 ? 1 : -1;
+            const pushY = overlapY * 0.65;
+            a.y -= signY * pushY * weightA;
+            b.y += signY * pushY * weightB;
+            const signX = dx >= 0 ? 1 : -1;
+            a.x -= signX * overlapX * 0.12 * weightA;
+            b.x += signX * overlapX * 0.12 * weightB;
+          } else {
+            const signX = dx >= 0 ? 1 : -1;
+            const signY = dy >= 0 ? 1 : -1;
+            const pushX = overlapX * 0.55;
+            const pushY = overlapY * 0.42;
+            a.x -= signX * pushX * weightA;
+            b.x += signX * pushX * weightB;
+            a.y -= signY * pushY * weightA;
+            b.y += signY * pushY * weightB;
+          }
+        }
+      }
+    }
+  }
+
+  // 依鏡頭遠近排序深度（越靠近鏡頭 zIndex 越高，選取中的關卡置頂），並平滑更新座標
+  const sortedByDepth = [...visibleLabels].sort((a, b) => b.z - a.z);
+  sortedByDepth.forEach((item, rank) => {
+    item.zIndex = item.id === selectedId ? 24 : 8 + Math.min(14, Math.floor((rank / Math.max(1, sortedByDepth.length)) * 14));
+  });
+
+  const smoothLerp = Math.min(1, dt * 16);
+  visibleLabels.forEach(item => {
+    const padX = item.w * 0.5 + 8;
+    const targetX = Math.max(padX, Math.min(vw - padX, item.x));
+    const targetY = Math.max(item.h + 56, Math.min(vh - 28, item.y));
+    const prevX = item.group.userData.smoothLabelX ?? targetX;
+    const prevY = item.group.userData.smoothLabelY ?? targetY;
+    const finalX = prevX + (targetX - prevX) * smoothLerp;
+    const finalY = prevY + (targetY - prevY) * smoothLerp;
+    item.group.userData.smoothLabelX = finalX;
+    item.group.userData.smoothLabelY = finalY;
+    item.finalX = finalX;
+    item.finalY = finalY;
+    item.label.style.zIndex = String(item.zIndex);
+    item.label.style.transform = `translate(-50%, -100%) translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0)`;
   });
 
   // Bit 博士在浮空島間巡島與揮手
@@ -3597,13 +3686,20 @@ function animate() {
         }
       }
 
-      projVec.set(ent.group.position.x, ent.group.position.y + 1.95, ent.group.position.z).project(camera);
-      if (projVec.z > 1) {
+      projVec.set(ent.group.position.x, ent.group.position.y + 1.85, ent.group.position.z).project(camera);
+      if (projVec.z > 1 || projVec.z < -1) {
         ent.tagEl.style.display = "none";
       } else {
         ent.tagEl.style.display = "flex";
-        const px = (projVec.x * 0.5 + 0.5) * window.innerWidth;
-        const py = (-projVec.y * 0.5 + 0.5) * window.innerHeight;
+        let px = (projVec.x * 0.5 + 0.5) * vw;
+        let py = (-projVec.y * 0.5 + 0.5) * vh;
+        // 避免學伴頭頂名牌與島嶼關卡名稱重疊：若靠近島嶼標籤則自動往下微移
+        for (let k = 0; k < visibleLabels.length; k++) {
+          const lbl = visibleLabels[k];
+          if (Math.abs(px - lbl.finalX) < lbl.w * 0.52 + 40 && Math.abs(py - lbl.finalY) < lbl.h * 0.65 + 16) {
+            py = lbl.finalY + 30;
+          }
+        }
         ent.tagEl.style.transform = `translate(-50%, -100%) translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0)`;
       }
     });

@@ -79,7 +79,7 @@ button, input {
   display: none;
 }
 
-/* 漂浮關卡路牌標籤（圓潤雲朵膠囊風，柔和無稜角） */
+/* 漂浮關卡路牌標籤（單行精巧雲朵膠囊＋下方小箭頭，清晰不遮擋鄰島） */
 .island-label {
   position: absolute;
   left: 0;
@@ -90,54 +90,78 @@ button, input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 8px 18px 9px;
+  gap: 2px;
+  padding: 5px 13px 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 8px 22px rgba(175, 105, 138, 0.15);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1.8px solid rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 18px rgba(155, 85, 120, 0.18), 0 0 0 1.5px rgba(244, 114, 182, 0.16);
+  backdrop-filter: blur(8px);
   white-space: nowrap;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s, border-color 0.18s, box-shadow 0.18s;
+  will-change: transform;
+  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, opacity 0.2s;
+}
+
+.island-label::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.96) transparent transparent transparent;
+  filter: drop-shadow(0 2px 2px rgba(155, 85, 120, 0.15));
+  pointer-events: none;
 }
 
 .island-label:hover,
 .island-label.active {
   background: #fff0f6;
-  z-index: 15;
+  z-index: 26 !important;
   border-color: #f472b6;
-  box-shadow: 0 8px 22px rgba(244, 114, 182, 0.32), 0 0 0 4px rgba(244, 114, 182, 0.2);
+  box-shadow: 0 8px 24px rgba(244, 114, 182, 0.36), 0 0 0 3.5px rgba(244, 114, 182, 0.24);
+}
+
+.island-label:hover::after,
+.island-label.active::after {
+  border-top-color: #f472b6;
 }
 
 .island-label-top {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 15px;
-  font-weight: 800;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 900;
   color: var(--ink);
+  line-height: 1.2;
 }
 
 .island-label .ch-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 9px;
+  min-width: 24px;
+  padding: 2px 7px;
   border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 800;
+  font-size: 11.5px;
+  font-weight: 900;
   background: var(--unit-color, #f472b6);
   color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .island-stars {
-  font-size: 13.5px;
-  letter-spacing: 3px;
+  font-size: 11.5px;
+  letter-spacing: 1px;
   line-height: 1;
+  padding-left: 3px;
+  border-left: 1.5px solid rgba(244, 114, 182, 0.22);
 }
 
 .island-label.dimmed {
-  opacity: 0.28;
+  opacity: 0.24;
 }
 
 /* 頂部柔和粉彩導覽列（大圓弧雲朵膠囊） */
@@ -2510,26 +2534,10 @@ button, input {
   }
 
   .section-points li {
-    font-size: 15.5px;
-    padding: 14px 16px 14px 42px;
-    line-height: 1.7;
-    border-radius: 20px;
-  }
-}
-
-/* 超窄螢幕 (<= 400px) */
-@media (max-width: 400px) {
-  .tools {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .tools .candy-btn {
-    flex-direction: row;
-    padding: 8px;
-  }
-}
     padding: 14px 15px 14px 38px;
-    font-size: 16.5px;
-    line-height: 1.8;
+    font-size: 16px;
+    line-height: 1.75;
+    border-radius: 20px;
   }
 
   .section-points li::before {
@@ -2738,21 +2746,6 @@ button, input {
 
 /* 手機端 (<= 560px) 進一步微調 */
 @media (max-width: 560px) {
-  #timebar {
-    bottom: max(10px, env(safe-area-inset-bottom));
-    left: 8px;
-    right: 8px;
-    justify-content: space-between;
-    padding: 6px 12px;
-  }
-
-  #live-ticker {
-    left: 8px;
-    bottom: 62px;
-    width: min(235px, calc(100vw - 16px));
-    padding: 9px 12px;
-  }
-
   .avatar-picker-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -2770,8 +2763,17 @@ button, input {
     min-width: 78px;
   }
 
-  .island-label-top span:last-child {
-    max-width: 105px;
+  .island-label {
+    padding: 4px 10px 5px;
+  }
+
+  .island-label-top {
+    font-size: 12.5px;
+    gap: 4px;
+  }
+
+  .island-label-top .ch-title-text {
+    max-width: 112px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
@@ -2783,5 +2785,16 @@ button, input {
   .section-points li {
     font-size: 16px;
     line-height: 1.75;
+  }
+}
+
+/* 超窄螢幕 (<= 400px) */
+@media (max-width: 400px) {
+  .tools {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tools .candy-btn {
+    flex-direction: row;
+    padding: 8px;
   }
 }
