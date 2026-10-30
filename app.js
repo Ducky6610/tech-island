@@ -12,21 +12,21 @@ const UNITS = [
 ];
 
 const ISLAND_LAYOUT = [
-  { id: 1, unit: 1, q: 0, r: 0 },
-  { id: 2, unit: 1, q: 1, r: -1 },
-  { id: 3, unit: 2, q: -1, r: 0 },
-  { id: 4, unit: 2, q: 0, r: -1 },
-  { id: 5, unit: 2, q: -1, r: -1 },
-  { id: 6, unit: 3, q: -2, r: 1 },
-  { id: 7, unit: 3, q: -1, r: 1 },
-  { id: 8, unit: 3, q: -2, r: 0 },
-  { id: 9, unit: 3, q: -1, r: 2 },
-  { id: 10, unit: 3, q: 0, r: 1 },
-  { id: 11, unit: 4, q: 1, r: 0 },
-  { id: 12, unit: 4, q: 2, r: -1 },
-  { id: 13, unit: 4, q: 1, r: 1 },
-  { id: 14, unit: 4, q: 2, r: 0 },
-  { id: 15, unit: 4, q: 0, r: 2 }
+  { id: 1, unit: 1, q: 0, r: 0, skyY: 4.2 },
+  { id: 2, unit: 1, q: 1, r: -1, skyY: 5.4 },
+  { id: 3, unit: 2, q: -1, r: 0, skyY: 3.1 },
+  { id: 4, unit: 2, q: 0, r: -1, skyY: 6.2 },
+  { id: 5, unit: 2, q: -1, r: -1, skyY: 4.8 },
+  { id: 6, unit: 3, q: -2, r: 1, skyY: 3.6 },
+  { id: 7, unit: 3, q: -1, r: 1, skyY: 5.1 },
+  { id: 8, unit: 3, q: -2, r: 0, skyY: 6.0 },
+  { id: 9, unit: 3, q: -1, r: 2, skyY: 2.6 },
+  { id: 10, unit: 3, q: 0, r: 1, skyY: 3.8 },
+  { id: 11, unit: 4, q: 1, r: 0, skyY: 5.6 },
+  { id: 12, unit: 4, q: 2, r: -1, skyY: 6.6 },
+  { id: 13, unit: 4, q: 1, r: 1, skyY: 4.4 },
+  { id: 14, unit: 4, q: 2, r: 0, skyY: 3.3 },
+  { id: 15, unit: 4, q: 0, r: 2, skyY: 5.0 }
 ];
 
 const COLLAB_LINKS = [
@@ -326,14 +326,14 @@ const labelsContainer = document.getElementById("labels");
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x72efdd, 0.0038);
 
-const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 400);
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 420);
 function getOverviewCamPos() {
   const w = window.innerWidth;
-  if (w <= 767) return new THREE.Vector3(0, 62, 78);
-  if (w <= 1180) return new THREE.Vector3(0, 54, 70);
-  return new THREE.Vector3(0, 48, 62);
+  if (w <= 767) return new THREE.Vector3(0, 52, 84);
+  if (w <= 1180) return new THREE.Vector3(0, 44, 74);
+  return new THREE.Vector3(0, 38, 66);
 }
-const DEFAULT_TARGET = new THREE.Vector3(0, 0, 2);
+const DEFAULT_TARGET = new THREE.Vector3(0, 3.5, 2);
 camera.position.copy(getOverviewCamPos());
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -348,10 +348,10 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.07;
-controls.maxPolarAngle = Math.PI / 2.15;
-controls.minPolarAngle = 0.25;
-controls.minDistance = 16;
-controls.maxDistance = 120;
+controls.maxPolarAngle = Math.PI / 1.88;
+controls.minPolarAngle = 0.22;
+controls.minDistance = 15;
+controls.maxDistance = 135;
 controls.target.copy(DEFAULT_TARGET);
 
 let camAnim = null;
@@ -397,34 +397,42 @@ waterGeo.computeVertexNormals();
 
 const waterMat = new THREE.MeshStandardMaterial({
   color: 0x00b4d8,
-  roughness: 0.28,
+  roughness: 0.32,
   metalness: 0.05,
   flatShading: false
 });
 const waterMesh = new THREE.Mesh(waterGeo, waterMat);
-waterMesh.position.y = -0.6;
+// 將底層海洋下移至高空雲海下方，烘托 15 座漂浮空島懸浮於天際的立體感
+waterMesh.position.y = -11.5;
 waterMesh.receiveShadow = true;
 scene.add(waterMesh);
 
-// 圓潤蓬鬆棉花糖白雲環繞天空
+// 圓潤蓬鬆棉花糖白雲（分佈於空島下方雲海與高空天際，營造穿梭雲端的天空之城氛圍）
 const skyClouds = [];
-const cloudWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, flatShading: false });
-for (let i = 0; i < 12; i++) {
+const cloudWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, flatShading: false });
+const cloudSoftPinkMat = new THREE.MeshStandardMaterial({ color: 0xfff0f6, roughness: 0.45, flatShading: false });
+for (let i = 0; i < 24; i++) {
   const cg = new THREE.Group();
-  const p1 = new THREE.Mesh(new THREE.SphereGeometry(2.2, 24, 24), cloudWhiteMat);
-  p1.scale.set(1.15, 0.85, 1.0);
-  const p2 = new THREE.Mesh(new THREE.SphereGeometry(1.7, 24, 24), cloudWhiteMat);
-  p2.position.set(1.85, -0.25, 0.25);
-  const p3 = new THREE.Mesh(new THREE.SphereGeometry(1.6, 24, 24), cloudWhiteMat);
-  p3.position.set(-1.75, -0.32, -0.2);
-  const p4 = new THREE.Mesh(new THREE.SphereGeometry(1.3, 20, 20), cloudWhiteMat);
+  const cMat = i % 3 === 0 ? cloudSoftPinkMat : cloudWhiteMat;
+  const p1 = new THREE.Mesh(new THREE.SphereGeometry(2.2, 24, 24), cMat);
+  p1.scale.set(1.2, 0.82, 1.0);
+  const p2 = new THREE.Mesh(new THREE.SphereGeometry(1.7, 24, 24), cMat);
+  p2.position.set(1.85, -0.22, 0.25);
+  const p3 = new THREE.Mesh(new THREE.SphereGeometry(1.6, 24, 24), cMat);
+  p3.position.set(-1.75, -0.28, -0.2);
+  const p4 = new THREE.Mesh(new THREE.SphereGeometry(1.3, 20, 20), cMat);
   p4.position.set(0.3, 0.55, 0.65);
   cg.add(p1, p2, p3, p4);
-  const ang = (i / 12) * Math.PI * 2;
-  const rad = 52 + (i % 3) * 12;
-  cg.position.set(Math.cos(ang) * rad, 14 + (i % 4) * 3.5, Math.sin(ang) * rad);
+
+  const isLowCloud = i < 14; // 前 14 朵漂浮在空島下方與島際之間，形成立體雲海
+  const ang = (i / (isLowCloud ? 14 : 10)) * Math.PI * 2 + (isLowCloud ? 0 : 0.4);
+  const rad = isLowCloud ? 14 + (i % 5) * 9.5 : 50 + (i % 3) * 12;
+  const baseY = isLowCloud ? -4.2 + (i % 4) * 1.65 : 13 + (i % 4) * 3.2;
+  const s = isLowCloud ? 0.78 + (i % 3) * 0.18 : 1.05;
+  cg.scale.set(s, s, s);
+  cg.position.set(Math.cos(ang) * rad, baseY, Math.sin(ang) * rad);
   scene.add(cg);
-  skyClouds.push({ mesh: cg, ang, rad, speed: 0.025 + (i % 3) * 0.008, baseY: cg.position.y });
+  skyClouds.push({ mesh: cg, ang, rad, speed: (isLowCloud ? 0.018 : 0.025) + (i % 3) * 0.006, baseY });
 }
 
 // 星空粒子
@@ -765,28 +773,142 @@ function buildChapterLandmark(chId, unitHex) {
   return g;
 }
 
-// 建立 15 座圓潤馬卡龍軟墊島（取代原本生硬的六角柱）
+// 建立 15 座漂浮在空中的 Q版天空浮空島（階層式倒錐浮空岩座 + 反重力發光水晶 + 環繞小浮石與雲朵托座）
 ISLAND_LAYOUT.forEach((item, index) => {
   const unit = getUnit(item.unit);
   const pos = axialToWorld(item.q, item.r);
+  const baseY = item.skyY ?? 4.0;
+  pos.y = baseY;
+
   const group = new THREE.Group();
   group.position.copy(pos);
-  group.userData = { chId: item.id, unitId: item.unit, baseY: 0, phase: index * 0.55 };
+  group.userData = { chId: item.id, unitId: item.unit, baseY, phase: index * 0.62 };
 
-  // 底層圓潤焦糖布丁岩座（40 段高平滑圓柱 + 圓弧底）
-  const rockGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.88, HEX_RADIUS * 0.56, 1.9, 40);
-  const rockMat = makeMat(0xd4a373, { roughness: 0.65 });
-  const rock = new THREE.Mesh(rockGeo, rockMat);
-  rock.position.y = -0.95;
-  rock.receiveShadow = true;
-  group.add(rock);
+  const rockWarmMat = makeMat(0xd4a373, { roughness: 0.62 });
+  const rockDeepMat = makeMat(0xb07d52, { roughness: 0.68 });
+  const rockTipMat = makeMat(0x8c5e3c, { roughness: 0.72 });
 
-  const rockBottom = new THREE.Mesh(new THREE.SphereGeometry(HEX_RADIUS * 0.56, 32, 16), rockMat);
-  rockBottom.scale.set(1, 0.35, 1);
-  rockBottom.position.y = -1.9;
-  group.add(rockBottom);
+  // 1. 浮空島第一階：上層圓潤琥珀岩座
+  const rockUpper = new THREE.Mesh(
+    new THREE.CylinderGeometry(HEX_RADIUS * 0.88, HEX_RADIUS * 0.65, 1.45, 40),
+    rockWarmMat
+  );
+  rockUpper.position.y = -0.72;
+  rockUpper.receiveShadow = true;
+  rockUpper.castShadow = true;
+  group.add(rockUpper);
 
-  // 中層香草奶油圓弧軟墊沙灘
+  const rockUpperRim = new THREE.Mesh(
+    new THREE.TorusGeometry(HEX_RADIUS * 0.66, 0.24, 16, 40),
+    rockWarmMat
+  );
+  rockUpperRim.rotation.x = Math.PI / 2;
+  rockUpperRim.position.y = -1.42;
+  group.add(rockUpperRim);
+
+  // 2. 浮空島第二階：中層漸縮倒錐形浮空島岩腹
+  const rockMid = new THREE.Mesh(
+    new THREE.CylinderGeometry(HEX_RADIUS * 0.64, HEX_RADIUS * 0.34, 1.85, 36),
+    rockDeepMat
+  );
+  rockMid.position.y = -2.35;
+  rockMid.receiveShadow = true;
+  rockMid.castShadow = true;
+  group.add(rockMid);
+
+  // 島腹周圍不對稱圓潤浮空岩塊（增添自然空島的立體層次感）
+  for (let k = 0; k < 4; k++) {
+    const lobeAng = (k / 4) * Math.PI * 2 + index * 0.5;
+    const lobeR = HEX_RADIUS * 0.48;
+    const lobe = new THREE.Mesh(
+      new THREE.SphereGeometry(0.95 + (k % 2) * 0.28, 20, 20),
+      k % 2 === 0 ? rockWarmMat : rockDeepMat
+    );
+    lobe.scale.set(1.1, 1.45, 0.95);
+    lobe.position.set(
+      Math.cos(lobeAng) * lobeR,
+      -1.85 - (k % 2) * 0.45,
+      Math.sin(lobeAng) * lobeR
+    );
+    group.add(lobe);
+  }
+
+  // 3. 浮空島第三階：底部收束垂墜岩尖（無尖銳稜角，以圓球收尾）
+  const rockLower = new THREE.Mesh(
+    new THREE.CylinderGeometry(HEX_RADIUS * 0.34, 0.42, 1.55, 32),
+    rockTipMat
+  );
+  rockLower.position.y = -3.95;
+  rockLower.castShadow = true;
+  group.add(rockLower);
+
+  const rockTipCap = new THREE.Mesh(new THREE.SphereGeometry(0.46, 20, 20), rockTipMat);
+  rockTipCap.position.y = -4.72;
+  group.add(rockTipCap);
+
+  // 4. 島底反重力魔法浮空能量水晶 + 懸浮光環
+  const crystalMat = makeGlowMat(unit.hex);
+  const floatCrystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.58, 1), crystalMat);
+  floatCrystal.scale.set(0.85, 1.45, 0.85);
+  floatCrystal.position.y = -5.55;
+  group.add(floatCrystal);
+  animatedProps.push({ mesh: floatCrystal, type: "spinY", speed: 1.8 });
+
+  const magicHalo = new THREE.Mesh(
+    new THREE.TorusGeometry(1.15, 0.07, 14, 36),
+    makeGlowMat(0xfef08a)
+  );
+  magicHalo.rotation.x = Math.PI / 2;
+  magicHalo.position.y = -5.15;
+  group.add(magicHalo);
+
+  // 5. 環繞浮空島下半部的迷你漂浮小碎石 & 軟綿托島小雲朵
+  const orbitPebbleGroup = new THREE.Group();
+  for (let p = 0; p < 3; p++) {
+    const pAng = (p / 3) * Math.PI * 2 + index;
+    const distR = HEX_RADIUS * 0.78 + (p % 2) * 0.55;
+    const pebble = new THREE.Mesh(
+      new THREE.SphereGeometry(0.34 + (p % 2) * 0.12, 16, 16),
+      p === 0 ? crystalMat : rockWarmMat
+    );
+    pebble.scale.set(1.2, 0.78, 1.0);
+    pebble.position.set(Math.cos(pAng) * distR, -2.1 - p * 0.75, Math.sin(pAng) * distR);
+    orbitPebbleGroup.add(pebble);
+  }
+  group.add(orbitPebbleGroup);
+  animatedProps.push({ mesh: orbitPebbleGroup, type: "spinY", speed: 0.35 + (index % 3) * 0.1 });
+
+  // 島嶼底部的蓬鬆雲朵環抱點綴
+  for (let c = 0; c < 2; c++) {
+    const cAng = c * Math.PI + index * 0.9;
+    const puffGroup = new THREE.Group();
+    const puff1 = new THREE.Mesh(new THREE.SphereGeometry(0.92, 18, 18), cloudWhiteMat);
+    puff1.scale.set(1.25, 0.75, 1.0);
+    const puff2 = new THREE.Mesh(new THREE.SphereGeometry(0.68, 16, 16), cloudWhiteMat);
+    puff2.position.set(0.75, -0.1, 0.2);
+    puffGroup.add(puff1, puff2);
+    puffGroup.position.set(
+      Math.cos(cAng) * (HEX_RADIUS * 0.68),
+      -2.65 - c * 0.5,
+      Math.sin(cAng) * (HEX_RADIUS * 0.68)
+    );
+    group.add(puffGroup);
+  }
+
+  // 部分浮空島邊緣傾瀉而下的夢幻天空小瀑布
+  if (item.id % 3 === 1) {
+    const wfMat = makeGlowMat(0x7dd3fc);
+    const wfStream = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 2.8, 12, 20), wfMat);
+    wfStream.position.set(HEX_RADIUS * 0.82, -1.25, 0.8);
+    wfStream.rotation.z = -0.12;
+    const wfMist1 = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), cloudWhiteMat);
+    wfMist1.position.set(HEX_RADIUS * 0.9, -2.85, 0.8);
+    const wfMist2 = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 14), wfMat);
+    wfMist2.position.set(HEX_RADIUS * 0.85, 0.25, 0.8);
+    group.add(wfStream, wfMist1, wfMist2);
+  }
+
+  // 6. 中層香草奶油圓弧軟墊沙灘
   const sandGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.94, HEX_RADIUS * 0.90, 0.48, 40);
   const sandMat = makeMat(0xfff3b0, { roughness: 0.5 });
   const sand = new THREE.Mesh(sandGeo, sandMat);
@@ -799,7 +921,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
   sandCushion.position.y = 0.24;
   group.add(sandCushion);
 
-  // 上層馬卡龍糖霜圓潤草地（搭配甜甜圈圓弧邊緣，完全無稜角）
+  // 7. 上層馬卡龍糖霜圓潤草地（搭配甜甜圈圓弧邊緣，完全無稜角）
   const topGeo = new THREE.CylinderGeometry(HEX_RADIUS * 0.85, HEX_RADIUS * 0.89, 0.52, 40);
   const topMat = makeMat(unit.hex, { roughness: 0.38 });
   const top = new THREE.Mesh(topGeo, topMat);
@@ -864,7 +986,7 @@ ISLAND_LAYOUT.forEach((item, index) => {
 });
 
 // ==========================================
-// 6. 建立 20 條圓滑彩虹光束軟管橋與珍珠光球
+// 6. 建立 20 條圓滑彩虹光束軟管橋與珍珠光球（連接高低錯落的浮空島）
 // ==========================================
 const linksGroup = new THREE.Group();
 scene.add(linksGroup);
@@ -876,11 +998,13 @@ COLLAB_LINKS.forEach((link, idx) => {
   const gB = islandGroups.get(link.b);
   if (!gA || !gB) return;
 
-  const pA = gA.position.clone().setY(1.65);
-  const pB = gB.position.clone().setY(1.65);
+  const pA = gA.position.clone();
+  pA.y = (gA.userData.baseY ?? 4.0) + 1.55;
+  const pB = gB.position.clone();
+  pB.y = (gB.userData.baseY ?? 4.0) + 1.55;
   const mid = pA.clone().add(pB).multiplyScalar(0.5);
   const dist = pA.distanceTo(pB);
-  mid.y += Math.min(8.5, 2.8 + dist * 0.22);
+  mid.y = Math.max(pA.y, pB.y) + Math.min(7.5, 2.2 + dist * 0.2);
 
   const curve = new THREE.QuadraticBezierCurve3(pA, mid, pB);
   const geo = new THREE.TubeGeometry(curve, 52, 0.075, 14, false);
@@ -1101,19 +1225,20 @@ function selectIsland(chId, initialTab = null) {
   const group = islandGroups.get(chId);
   if (group) {
     const p = group.position;
+    const baseY = group.userData.baseY ?? p.y;
     const w = window.innerWidth;
     let camOffset, targetOffset;
     if (w <= 860) {
-      // 手機與直向平板（底部抽屜式面板）：鏡頭拉高並將島嶼置於畫面上半部
-      camOffset = new THREE.Vector3(p.x, 23, p.z + 26);
-      targetOffset = new THREE.Vector3(p.x, -4.2, p.z);
+      // 手機與直向平板（底部抽屜式面板）：鏡頭拉高並將浮空島置於畫面上半部
+      camOffset = new THREE.Vector3(p.x, baseY + 21, p.z + 25);
+      targetOffset = new THREE.Vector3(p.x, baseY - 4.2, p.z);
     } else if (w <= 1180) {
-      // 橫向平板（右側精巧面板）：島嶼往左偏，留出右側空間不重疊
-      camOffset = new THREE.Vector3(p.x + 6.5, 20, p.z + 23);
-      targetOffset = new THREE.Vector3(p.x + 4.2, 1.0, p.z);
+      // 橫向平板（右側精巧面板）：浮空島往左偏，留出右側空間不重疊
+      camOffset = new THREE.Vector3(p.x + 6.5, baseY + 17, p.z + 22);
+      targetOffset = new THREE.Vector3(p.x + 4.2, baseY + 0.5, p.z);
     } else {
-      camOffset = new THREE.Vector3(p.x + 8, 19, p.z + 22);
-      targetOffset = new THREE.Vector3(p.x + 3.2, 1.2, p.z);
+      camOffset = new THREE.Vector3(p.x + 8, baseY + 16, p.z + 21);
+      targetOffset = new THREE.Vector3(p.x + 3.2, baseY + 0.6, p.z);
     }
     flyTo(camOffset, targetOffset, 820);
   }
@@ -2582,9 +2707,10 @@ function ensurePeer3D(peer, idx) {
   let ent = peer3DEntities.get(peer.id);
   const isl = islandGroups.get(peer.chId) || islandGroups.get(1);
   const ang = peer.offsetAngle ?? (idx * 1.5 + 0.8);
+  const islY = isl ? isl.position.y : 4.0;
   const target = new THREE.Vector3(
     isl.position.x + Math.cos(ang) * 2.25,
-    1.05,
+    islY + 1.05,
     isl.position.z + Math.sin(ang) * 2.25
   );
   const hex = peer.hex || PEER_COLORS[idx % PEER_COLORS.length];
@@ -3341,12 +3467,28 @@ function animate() {
     });
   }
 
-  // Bit 博士巡島與揮手
+  // 先更新 15 座天空浮空島的上下漂浮高度，讓島上的博士與學伴能精準踩在島面上
+  islandGroups.forEach(group => {
+    const baseY = group.userData.baseY ?? 4.0;
+    group.position.y = baseY + Math.sin(elapsed * 1.45 + group.userData.phase) * 0.48;
+    projVec.set(group.position.x, group.position.y + 3.9, group.position.z).project(camera);
+    const label = group.userData.labelEl;
+    if (projVec.z > 1) {
+      label.style.display = "none";
+    } else {
+      label.style.display = "flex";
+      const x = (projVec.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-projVec.y * 0.5 + 0.5) * window.innerHeight;
+      label.style.transform = `translate(-50%, -100%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    }
+  });
+
+  // Bit 博士在浮空島間巡島與揮手
   if (mascotState.pauseTimer > 0) {
     mascotState.pauseTimer -= dt;
     const g = islandGroups.get(mascotState.fromId);
     if (g) {
-      mascotGroup.position.set(g.position.x + 1.8, 1.05, g.position.z + 1.8);
+      mascotGroup.position.set(g.position.x + 1.8, g.position.y + 1.05, g.position.z + 1.8);
       mascotGroup.userData.arm.rotation.z = -0.6 + Math.sin(elapsed * 9) * 0.5;
     }
     if (mascotState.pauseTimer <= 0) {
@@ -3364,7 +3506,7 @@ function animate() {
     if (gA && gB) {
       const t = Math.min(1, mascotState.progress);
       mascotGroup.position.lerpVectors(gA.position, gB.position, t);
-      mascotGroup.position.y = 1.05 + Math.sin(t * Math.PI) * 1.5 + Math.abs(Math.sin(elapsed * 11)) * 0.16;
+      mascotGroup.position.y += 1.05 + Math.sin(t * Math.PI) * 2.2 + Math.abs(Math.sin(elapsed * 11)) * 0.16;
       mascotGroup.lookAt(gB.position.x, mascotGroup.position.y, gB.position.z);
     }
     if (mascotState.progress >= 1) {
@@ -3386,27 +3528,17 @@ function animate() {
     if (mascotState.bubbleTimer <= 0) mascotBubble.classList.add("hidden");
   }
 
-  islandGroups.forEach(group => {
-    group.position.y = Math.sin(elapsed * 1.4 + group.userData.phase) * 0.14;
-    projVec.set(group.position.x, group.position.y + 3.9, group.position.z).project(camera);
-    const label = group.userData.labelEl;
-    if (projVec.z > 1) {
-      label.style.display = "none";
-    } else {
-      label.style.display = "flex";
-      const x = (projVec.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-projVec.y * 0.5 + 0.5) * window.innerHeight;
-      label.style.transform = `translate(-50%, -100%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-    }
-  });
-
-  // 更新島上其他學伴 3D 擬人化公仔（邁步擺手、揮手打招呼、轉向與頭頂角色名牌投影）
+  // 更新島上其他學伴 3D 擬人化公仔（跟隨浮空島高度、邁步擺手、揮手打招呼與頭頂角色名牌投影）
   if (showPeers) {
     peer3DEntities.forEach(ent => {
+      const isl = islandGroups.get(ent.peerData.chId) || islandGroups.get(1);
+      if (isl) {
+        ent.targetPos.y = isl.position.y + 1.05;
+      }
       const prevX = ent.curPos.x;
       const prevZ = ent.curPos.z;
       ent.curPos.lerp(ent.targetPos, Math.min(1, dt * 3.2));
-      const dist = ent.curPos.distanceTo(ent.targetPos);
+      const dist = Math.hypot(ent.targetPos.x - ent.curPos.x, ent.targetPos.z - ent.curPos.z);
       const isWalking = dist > 0.18;
       const isGreeting = ent.greetTimer > 0;
 
@@ -3419,12 +3551,12 @@ function animate() {
       }
 
       const hop = isWalking
-        ? Math.abs(Math.sin(elapsed * 11 + ent.phase)) * 0.58
+        ? Math.abs(Math.sin(elapsed * 11 + ent.phase)) * 0.72
         : isGreeting
         ? Math.abs(Math.sin(elapsed * 14)) * 0.35
         : Math.sin(elapsed * 3 + ent.phase) * 0.07;
 
-      ent.group.position.set(ent.curPos.x, 1.05 + hop, ent.curPos.z);
+      ent.group.position.set(ent.curPos.x, ent.curPos.y + hop, ent.curPos.z);
 
       // 角色面向：移動時朝向前進方向，靜止時朝向鏡頭並微幅左右擺頭
       if (isWalking) {
