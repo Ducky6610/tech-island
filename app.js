@@ -1982,94 +1982,182 @@ ISLAND_LAYOUT.forEach((item, index) => {
 });
 
 // ==========================================
-// 6. 建立 20 條城市跨區高架光軌幹道與穿梭小列車（連接各街區）
+// 6. 模擬城市棋盤道路導航系統與個人敞篷座駕建造器
 // ==========================================
 const linksGroup = new THREE.Group();
-scene.add(linksGroup);
 const linkObjects = [];
-const rainbowPalette = [0xff8fa3, 0xfde047, 0x6ee7b7, 0x7dd3fc, 0xd8b4fe];
 
-COLLAB_LINKS.forEach((link, idx) => {
-  const gA = islandGroups.get(link.a);
-  const gB = islandGroups.get(link.b);
-  if (!gA || !gB) return;
+// 5x5 棋盤式主幹道座標：[-28, -14, 0, 14, 28]
+const ROAD_COORDS = [-28.0, -14.0, 0.0, 14.0, 28.0];
 
-  const pA = gA.position.clone();
-  pA.y = 0.55;
-  const pB = gB.position.clone();
-  pB.y = 0.55;
-  const mid = pA.clone().add(pB).multiplyScalar(0.5);
-  mid.y = 1.65;
+function nearestRoadCoord(val) {
+  let best = ROAD_COORDS[0];
+  let minD = Math.abs(val - best);
+  for (let i = 1; i < ROAD_COORDS.length; i++) {
+    const d = Math.abs(val - ROAD_COORDS[i]);
+    if (d < minD) {
+      minD = d;
+      best = ROAD_COORDS[i];
+    }
+  }
+  return best;
+}
 
-  // 跨街區城市捷運/高架資訊導軌
-  const navCurve = new THREE.QuadraticBezierCurve3(pA, mid, pB);
-  const geo = new THREE.TubeGeometry(navCurve, 36, 0.08, 12, false);
-  const baseColor = rainbowPalette[idx % rainbowPalette.length];
-  const mat = new THREE.MeshStandardMaterial({
-    color: baseColor,
-    emissive: baseColor,
-    emissiveIntensity: 0.35,
-    roughness: 0.35,
-    transparent: true,
-    opacity: 0.48
-  });
-  const line = new THREE.Mesh(geo, mat);
-  linksGroup.add(line);
+// 取得某棟主題大樓正門人行道廣場的停駐座標（避免穿入建築物內部）
+function getBuildingPlazaPos(chId, slotIdx = 0) {
+  const isl = islandGroups.get(chId) || islandGroups.get(1);
+  const bx = isl ? isl.position.x : -21;
+  const bz = isl ? isl.position.z : -21;
+  const offsets = [0, -1.15, 1.15, -2.3, 2.3, -3.35, 3.35];
+  const ox = offsets[Math.abs(slotIdx) % offsets.length];
+  return new THREE.Vector3(bx + ox, 0.48, bz + 4.35);
+}
 
-  // 穿梭於高架軌道上的 Q 版捷運動能資料艙
-  const dot = new THREE.Group();
-  const trainBody = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.24, 0.55, 12, 16),
-    new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.28 })
-  );
-  trainBody.rotation.x = Math.PI / 2;
-  const trainCockpit = new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 16, 16),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  );
-  trainCockpit.position.set(0, 0.08, 0.28);
-  dot.add(trainBody, trainCockpit);
-  linksGroup.add(dot);
+// 規劃從起點到終點建築的「模擬城市棋盤道路導航路徑」（100% 沿柏油馬路與路口轉彎，絕不直線穿越建築物）
+function buildRoadWaypoints(startVec, destVec) {
+  const distTotal = Math.hypot(destVec.x - startVec.x, destVec.z - startVec.z);
+  if (distTotal < 0.35) {
+    return [{ pos: destVec.clone(), onRoad: false }];
+  }
 
-  linkObjects.push({ ...link, baseColor, curve: navCurve, line, mat, dot, t: Math.random() });
-});
+  const zRoad1 = nearestRoadCoord(startVec.z);
+  const zRoad2 = nearestRoadCoord(destVec.z);
+  const pts = [];
+
+  if (Math.abs(zRoad1 - zRoad2) < 0.5) {
+    // 同一條東西向幹道：直接開上前方幹道，沿右行車道行駛至目標建築正門
+    const dirX = destVec.x >= startVec.x ? 1 : -1;
+    const laneZ = zRoad1 + (dirX > 0 ? 0.62 : -0.62);
+    pts.push({ pos: new THREE.Vector3(startVec.x, 0.16, laneZ), onRoad: true });
+    pts.push({ pos: new THREE.Vector3(destVec.x, 0.16, laneZ), onRoad: true });
+  } else {
+    // 不同東西向幹道：選出總路徑最短的南北向幹道 xRoad 進行十字路口垂直轉彎
+    let bestXRoad = ROAD_COORDS[0];
+    let bestCost = Infinity;
+    for (const xr of ROAD_COORDS) {
+      const cost = Math.abs(startVec.x - xr) + Math.abs(destVec.x - xr);
+      if (cost < bestCost) {
+        bestCost = cost;
+        bestXRoad = xr;
+      }
+    }
+
+    const dirX1 = bestXRoad >= startVec.x ? 1 : -1;
+    const laneZ1 = zRoad1 + (dirX1 > 0 ? 0.62 : -0.62);
+
+    const dirZ = zRoad2 >= zRoad1 ? 1 : -1;
+    const laneX = bestXRoad + (dirZ > 0 ? -0.62 : 0.62);
+
+    const dirX2 = destVec.x >= bestXRoad ? 1 : -1;
+    const laneZ2 = zRoad2 + (dirX2 > 0 ? 0.62 : -0.62);
+
+    pts.push({ pos: new THREE.Vector3(startVec.x, 0.16, laneZ1), onRoad: true });
+    pts.push({ pos: new THREE.Vector3(laneX, 0.16, laneZ1), onRoad: true });
+    pts.push({ pos: new THREE.Vector3(laneX, 0.16, laneZ2), onRoad: true });
+    pts.push({ pos: new THREE.Vector3(destVec.x, 0.16, laneZ2), onRoad: true });
+  }
+
+  pts.push({ pos: destVec.clone(), onRoad: false });
+  return pts;
+}
+
+// 建立學伴與使用者專屬的 3D 敞篷小跑車座駕（移動時搭乘於道路行駛）
+function createPeerConvertibleMesh(hexColor = 0xf472b6) {
+  const vehicleGroup = new THREE.Group();
+  const bodyMat = makeMat(hexColor, { roughness: 0.3 });
+  const trimMat = makeMat(0xffffff, { roughness: 0.35 });
+  const interiorMat = makeMat(0x1e293b, { roughness: 0.6 });
+  const glassMat = makeGlowMat(0xbae6fd, 0.45);
+  const wheelRubberMat = makeMat(0x1e293b, { roughness: 0.85 });
+  const wheelHubMat = makeMat(0xe2e8f0, { roughness: 0.3, metalness: 0.6 });
+  const headlightMat = makeGlowMat(0xfef08a, 0.9);
+  const taillightMat = makeGlowMat(0xef4444, 0.85);
+
+  // 車體底盤與白色流線飾條
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.28, 1.52), bodyMat);
+  chassis.position.y = 0.2;
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.06, 1.18), trimMat);
+  stripe.position.y = 0.22;
+  // 敞篷座艙內裝與方向盤
+  const cockpit = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.12, 0.76), interiorMat);
+  cockpit.position.set(0, 0.3, -0.04);
+  const steering = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.022, 8, 16), interiorMat);
+  steering.position.set(0, 0.4, 0.22);
+  steering.rotation.x = -0.55;
+  // 傾斜式前擋風玻璃
+  const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.24, 0.045), glassMat);
+  windshield.position.set(0, 0.42, 0.36);
+  windshield.rotation.x = -0.35;
+
+  vehicleGroup.add(chassis, stripe, cockpit, steering, windshield);
+
+  // 車頭大燈與車尾煞車燈
+  for (const lx of [-0.28, 0.28]) {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.04), headlightMat);
+    hl.position.set(lx, 0.22, 0.76);
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.04), taillightMat);
+    tl.position.set(lx, 0.22, -0.76);
+    vehicleGroup.add(hl, tl);
+  }
+
+  // 四顆可動車輪
+  const wheels = [];
+  for (const [wx, wz] of [[-0.44, 0.46], [0.44, 0.46], [-0.44, -0.46], [0.44, -0.46]]) {
+    const wGroup = new THREE.Group();
+    wGroup.position.set(wx, 0.13, wz);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.09, 12), wheelRubberMat);
+    tire.rotation.z = Math.PI / 2;
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.095, 10), wheelHubMat);
+    hub.rotation.z = Math.PI / 2;
+    wGroup.add(tire, hub);
+    vehicleGroup.add(wGroup);
+    wheels.push(wGroup);
+  }
+
+  return { vehicleGroup, wheels };
+}
 
 // ==========================================
-// 7. Q版吉祥物「Bit 博士」（圓潤二頭身公仔 + 雲朵軟墊座）
+// 7. Q版吉祥物「Bit 博士」（搭乘專屬黃色巡邏敞篷車沿道路巡迴）
 // ==========================================
 const mascotGroup = new THREE.Group();
 {
-  const soapbox = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.78, 0.44, 32), makeMat(0xfbbf24));
-  soapbox.position.y = 0.22;
-  mascotGroup.add(soapbox);
+  const { vehicleGroup: mascotCar, wheels: mascotWheels } = createPeerConvertibleMesh(0xfbbf24);
+  mascotGroup.add(mascotCar);
+  mascotGroup.userData.vehicleGroup = mascotCar;
+  mascotGroup.userData.wheels = mascotWheels;
 
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.36, 0.38, 16, 24), makeMat(0xf472b6));
-  body.position.y = 0.88;
+  const charWrap = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.34, 16, 24), makeMat(0xf472b6));
+  body.position.y = 0.62;
   // Q版圓頭
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.48, 28, 28), makeMat(0xfff3b0));
-  head.position.y = 1.62;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.46, 28, 28), makeMat(0xfff3b0));
+  head.position.y = 1.32;
   // 蓬鬆雲朵捲髮
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.52, 24, 24), makeMat(0x4a3540));
-  hair.position.set(0, 1.82, -0.06);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 24, 24), makeMat(0x4a3540));
+  hair.position.set(0, 1.52, -0.06);
   // 圓框眼鏡
   const glasses = new THREE.Group();
   const frameL = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.035, 12, 24), makeMat(0x4a3540));
-  frameL.position.set(-0.17, 1.62, 0.44);
+  frameL.position.set(-0.17, 1.32, 0.42);
   const frameR = frameL.clone();
   frameR.position.x = 0.17;
   glasses.add(frameL, frameR);
   // 粉紅腮紅
   const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), makeMat(0xf43f5e));
-  cheekL.position.set(-0.28, 1.5, 0.4);
+  cheekL.position.set(-0.28, 1.2, 0.38);
   const cheekR = cheekL.clone();
   cheekR.position.x = 0.28;
   // 揮手小手
   const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.35, 12, 20), makeMat(0x7dd3fc));
-  arm.position.set(0.48, 1.15, 0);
+  arm.position.set(0.46, 0.88, 0);
   arm.rotation.z = -0.5;
   mascotGroup.userData.arm = arm;
 
-  mascotGroup.add(body, head, hair, glasses, cheekL, cheekR, arm);
+  charWrap.add(body, head, hair, glasses, cheekL, cheekR, arm);
+  mascotGroup.add(charWrap);
+  mascotGroup.userData.charWrap = charWrap;
+
   mascotGroup.traverse(o => {
     if (o.isMesh) {
       o.castShadow = true;
@@ -2080,11 +2168,14 @@ const mascotGroup = new THREE.Group();
 }
 scene.add(mascotGroup);
 
+const initMascotPos = getBuildingPlazaPos(1, 5);
+mascotGroup.position.copy(initMascotPos);
 const mascotState = {
   fromId: 1,
   toId: 2,
-  progress: 0,
-  pauseTimer: 2.5,
+  curPos: initMascotPos.clone(),
+  waypoints: [],
+  pauseTimer: 2.0,
   bubbleTimer: 0
 };
 
@@ -2178,6 +2269,7 @@ function selectIsland(chId, initialTab = null) {
   }
 
   updateIslandHighlights();
+  renderLiveTickerUI();
   renderPanel(chId);
   panelEl.classList.remove("hidden");
 }
@@ -3309,10 +3401,10 @@ function sanitizePeerObject(raw) {
 
 // 預設 4 位活潑的 AI 虛擬學伴，讓單人練習時島上也熱鬧滾滾！
 const aiClassmates = [
-  { id: "ai_1", name: "小櫻學伴", avatar: "🐰", color: "#f472b6", hex: 0xf472b6, chId: 2, targetChId: 2, action: "研讀 2-1 數字系統", stars: 12, lv: 3, offsetAngle: 0.6 },
-  { id: "ai_2", name: "阿凱同學", avatar: "🦊", color: "#60a5fa", hex: 0x60a5fa, chId: 4, targetChId: 4, action: "挑戰雲端服務測驗", stars: 18, lv: 4, offsetAngle: 2.1 },
-  { id: "ai_3", name: "奶茶喵喵", avatar: "🐱", color: "#fbbf24", hex: 0xfbbf24, chId: 11, targetChId: 11, action: "收集通訊小辭典", stars: 9, lv: 2, offsetAngle: 3.7 },
-  { id: "ai_4", name: "宇軒學長", avatar: "🐼", color: "#34d399", hex: 0x34d399, chId: 15, targetChId: 15, action: "練習 IPv4 子網路遮罩", stars: 27, lv: 6, offsetAngle: 5.1 }
+  { id: "ai_1", name: "小櫻學伴", avatar: "🐰", color: "#f472b6", hex: 0xf472b6, chId: 2, startChId: 1, targetChId: 2, action: "研讀 2-1 數字系統", stars: 12, lv: 3, offsetAngle: 0.6 },
+  { id: "ai_2", name: "阿凱同學", avatar: "🦊", color: "#60a5fa", hex: 0x60a5fa, chId: 4, startChId: 7, targetChId: 4, action: "挑戰雲端服務測驗", stars: 18, lv: 4, offsetAngle: 2.1 },
+  { id: "ai_3", name: "奶茶喵喵", avatar: "🐱", color: "#fbbf24", hex: 0xfbbf24, chId: 11, startChId: 6, targetChId: 11, action: "收集通訊小辭典", stars: 9, lv: 2, offsetAngle: 3.7 },
+  { id: "ai_4", name: "宇軒學長", avatar: "🐼", color: "#34d399", hex: 0x34d399, chId: 15, startChId: 10, targetChId: 15, action: "練習 IPv4 子網路遮罩", stars: 27, lv: 6, offsetAngle: 5.1 }
 ];
 
 const remoteRealPeers = new Map(); // 來自 /api/state 或 BroadcastChannel 的真人分頁/同學
@@ -3380,7 +3472,7 @@ function getHumanizedActionBadge(actionStr = "") {
   return "🏃 活力探索中";
 }
 
-// 建立 3D Q版二頭身擬人化學伴公仔（含五官、雙手雙腳、小書包、課本與對應動物立體耳帽）
+// 建立 3D Q版二頭身擬人化學伴公仔（含五官、雙手雙腳、小書包、課本、動物立體耳帽與專屬個人敞篷代步車）
 function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const g = new THREE.Group();
 
@@ -3392,6 +3484,15 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   ring.rotation.x = -Math.PI / 2;
   ring.position.y = 0.05;
   g.add(ring);
+
+  // 角色專屬個人敞篷小汽車（沿馬路移動時顯示，抵達建築正門廣場時隱藏）
+  const { vehicleGroup, wheels } = createPeerConvertibleMesh(hexColor);
+  vehicleGroup.visible = false;
+  g.add(vehicleGroup);
+
+  // 角色身體群組（乘車時可稍微下沉坐入駕駛座）
+  const charBodyGroup = new THREE.Group();
+  g.add(charBodyGroup);
 
   // 1. 擬人化雙腿與撞色小球鞋（走路時可前後擺動）
   const legMat = makeMat(0x4a3540);
@@ -3408,18 +3509,18 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
 
   const legR = legL.clone();
   legR.position.x = 0.13;
-  g.add(legL, legR);
+  charBodyGroup.add(legL, legR);
 
   // 2. Q版二頭身圓潤身體（連帽探險服 + 白色小領巾 + 背後雙色小書包）
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.28, 18, 28), makeMat(hexColor));
   torso.position.y = 0.64;
-  g.add(torso);
+  charBodyGroup.add(torso);
 
   // 白色圓領巾
   const collar = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.045, 12, 24), makeMat(0xffffff));
   collar.rotation.x = Math.PI / 2;
   collar.position.y = 0.86;
-  g.add(collar);
+  charBodyGroup.add(collar);
 
   // 背後立體探險小書包
   const backpack = new THREE.Mesh(new THREE.SphereGeometry(0.22, 20, 20), makeMat(0xfef08a));
@@ -3428,7 +3529,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const packPocket = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), makeMat(0xffffff));
   packPocket.scale.set(1, 0.7, 0.5);
   packPocket.position.set(0, 0.58, -0.32);
-  g.add(backpack, packPocket);
+  charBodyGroup.add(backpack, packPocket);
 
   // 3. 擬人化雙臂與粉嫩小圓手（左手拿小課本，右手揮手打招呼）
   const skinMat = makeMat(0xffe5d4);
@@ -3455,7 +3556,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   handR.position.y = -0.23;
   armR.add(upperArmR, handR);
   armR.rotation.z = -0.45;
-  g.add(armL, armR);
+  charBodyGroup.add(armL, armR);
 
   // 4. Q版擬人化頭部（含粉嫩臉龐、水汪汪大眼、眼神高光、腮紅、微笑與動物連帽耳飾）
   const headGroup = new THREE.Group();
@@ -3536,7 +3637,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
     const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 12, 16), coneMat);
     tail.position.set(0, 0.45, -0.34);
     tail.rotation.x = -0.7;
-    g.add(tail);
+    charBodyGroup.add(tail);
   } else if (avatarEmoji === "🦄") {
     // 獨角獸金色螺旋角 + 雙耳
     const horn = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.32, 20), makeMat(0xfacc15));
@@ -3593,10 +3694,13 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
     headGroup.add(earL, inL, earR, inR);
   }
 
-  g.add(headGroup);
+  charBodyGroup.add(headGroup);
 
-  // 儲存可動關節供動畫迴圈進行走路擺手、揮手與轉頭
+  // 儲存可動關節與敞篷車群組供動畫迴圈切換駕駛/步行狀態
   g.userData.rig = {
+    charBodyGroup,
+    vehicleGroup,
+    wheels,
     legL,
     legR,
     armL,
@@ -3622,7 +3726,9 @@ function renderPeerTagContent(ent) {
   const peer = ent.peerData;
   const colorStr = peer.color || "#f472b6";
   const portraitHTML = buildChibiPortraitHTML(peer.avatar, colorStr);
-  const humanBadge = getHumanizedActionBadge(peer.action);
+  const humanBadge = ent.isDriving
+    ? `🚗 乘車前往 Ch.${String(peer.chId).padStart(2, "0")}`
+    : getHumanizedActionBadge(peer.action);
   const greetBubbleHTML =
     ent.greetTimer > 0 && ent.greetText
       ? `<div class="peer-greet-bubble">💬 ${escapeHTML(ent.greetText)}</div>`
@@ -3645,21 +3751,23 @@ function renderPeerTagContent(ent) {
 
 function ensurePeer3D(peer, idx) {
   let ent = peer3DEntities.get(peer.id);
-  const isl = islandGroups.get(peer.chId) || islandGroups.get(1);
-  const ang = peer.offsetAngle ?? (idx * 1.5 + 0.8);
-  const islY = isl ? isl.position.y : 4.0;
-  const target = new THREE.Vector3(
-    isl.position.x + Math.cos(ang) * 2.25,
-    islY + 1.05,
-    isl.position.z + Math.sin(ang) * 2.25
-  );
+  const target = getBuildingPlazaPos(peer.chId, idx);
   const hex = peer.hex || PEER_COLORS[idx % PEER_COLORS.length];
   const colorCss = "#" + hex.toString(16).padStart(6, "0");
   peer.color = colorCss;
 
   if (!ent) {
+    const startPos =
+      peer.startChId && peer.startChId !== peer.chId
+        ? getBuildingPlazaPos(peer.startChId, idx)
+        : target.clone();
+    const initialWaypoints =
+      peer.startChId && peer.startChId !== peer.chId
+        ? buildRoadWaypoints(startPos, target)
+        : [];
+
     const meshGroup = createPeerPawnMesh(hex, peer.avatar);
-    meshGroup.position.copy(target);
+    meshGroup.position.copy(startPos);
     meshGroup.traverse(o => {
       if (o.isMesh) {
         o.castShadow = true;
@@ -3682,11 +3790,14 @@ function ensurePeer3D(peer, idx) {
       id: peer.id,
       peerData: peer,
       lastAvatar: peer.avatar,
+      lastChId: peer.chId,
       hex,
       group: meshGroup,
       tagEl,
-      curPos: target.clone(),
+      curPos: startPos.clone(),
       targetPos: target.clone(),
+      waypoints: initialWaypoints,
+      isDriving: initialWaypoints.length > 0,
       phase: idx * 1.3,
       greetTimer: 0,
       greetText: ""
@@ -3710,7 +3821,14 @@ function ensurePeer3D(peer, idx) {
   }
 
   ent.peerData = peer;
-  ent.targetPos.copy(target);
+  if (ent.lastChId !== peer.chId) {
+    ent.lastChId = peer.chId;
+    ent.targetPos.copy(target);
+    ent.waypoints = buildRoadWaypoints(ent.curPos, target);
+    ent.isDriving = ent.waypoints.length > 0;
+  } else if (!ent.waypoints || ent.waypoints.length === 0) {
+    ent.targetPos.copy(target);
+  }
   renderPeerTagContent(ent);
   ent.tagEl.style.display = showPeers ? "flex" : "none";
 }
@@ -3770,18 +3888,18 @@ function renderLiveTickerUI() {
     });
   }
 
+  const myInfo = getLevelInfo(gameState.xp);
   const barEl = document.getElementById("peer-avatars-bar");
   if (barEl) {
-    const myInfo = getLevelInfo(gameState.xp);
-    const myPortrait = buildChibiPortraitHTML(myInfo.avatar, "#f472b6");
-    const myChip = `<span class="peer-chip" id="my-self-chip" style="border-color:#f472b6;background:#fdf2f8;" title="點我修改暱稱與代表頭像">${myPortrait}<span>我(${escapeHTML(gameState.myName)}) · Ch.${selectedId || 1}</span></span>`;
+    const myPortrait = buildChibiPortraitHTML(myInfo.avatar, "#f43f5e");
+    const myChip = `<span class="peer-chip" id="my-self-chip" style="border-color:#f43f5e;background:#fff1f2;" title="點我修改暱稱與代表頭像">${myPortrait}<span>我(${escapeHTML(gameState.myName)}) · Ch.${selectedId || 1}</span></span>`;
     const otherChips = peers
       .slice(0, 6)
       .map((p, idx) => {
         const hex = p.hex || PEER_COLORS[idx % PEER_COLORS.length];
         const col = "#" + hex.toString(16).padStart(6, "0");
         const pPortrait = buildChibiPortraitHTML(p.avatar, col);
-        return `<span class="peer-chip" data-peerid="${escapeHTML(p.id)}" data-chid="${Number(p.chId) || 1}" title="${escapeHTML(p.name)}：${escapeHTML(p.action)}（點擊跟學伴打招呼並飛往 Ch.${Number(p.chId) || 1}）">${pPortrait}<span>${escapeHTML(p.name)} · Ch.${Number(p.chId) || 1}</span></span>`;
+        return `<span class="peer-chip" data-peerid="${escapeHTML(p.id)}" data-chid="${Number(p.chId) || 1}" title="${escapeHTML(p.name)}：${escapeHTML(p.action)}（點擊跟學伴打招呼並前往 Ch.${Number(p.chId) || 1}）">${pPortrait}<span>${escapeHTML(p.name)} · Ch.${Number(p.chId) || 1}</span></span>`;
       })
       .join("");
     barEl.innerHTML = myChip + otherChips;
@@ -3800,9 +3918,22 @@ function renderLiveTickerUI() {
     });
   }
 
-  // 更新每座島嶼路牌上的學伴小頭像群
+  // 建立玩家自己的 3D 角色資料（當切換主題建築時，玩家角色也會搭乘專屬敞篷車沿道路行駛過去！）
+  const mySelfPeer = {
+    id: gameState.myId,
+    name: `${gameState.myName} (我)`,
+    avatar: myInfo.avatar,
+    lv: myInfo.lv,
+    hex: 0xf43f5e,
+    chId: selectedId || 1,
+    action: myCurrentAction || `探索 Ch.${String(selectedId || 1).padStart(2, "0")}`,
+    isSelf: true
+  };
+  const all3DPeers = [mySelfPeer, ...peers];
+
+  // 更新每座建築標牌上的學伴小頭像群
   const byIsland = {};
-  peers.forEach(p => {
+  all3DPeers.forEach(p => {
     byIsland[p.chId] = byIsland[p.chId] || [];
     byIsland[p.chId].push(p);
   });
@@ -3819,7 +3950,7 @@ function renderLiveTickerUI() {
   }
 
   // 同步 3D 模型與清除離線者
-  const activeIds = new Set(peers.map(p => p.id));
+  const activeIds = new Set(all3DPeers.map(p => p.id));
   peer3DEntities.forEach((ent, id) => {
     if (!activeIds.has(id)) {
       peersRootGroup.remove(ent.group);
@@ -3827,7 +3958,7 @@ function renderLiveTickerUI() {
       peer3DEntities.delete(id);
     }
   });
-  peers.forEach((p, idx) => ensurePeer3D(p, idx));
+  all3DPeers.forEach((p, idx) => ensurePeer3D(p, idx));
 }
 
 // ==========================================
@@ -4197,13 +4328,15 @@ btnList.addEventListener("click", () => toggleListView());
 btnTour.addEventListener("click", () => (tourTimer ? stopTour() : startTour()));
 
 const btnLinks = document.getElementById("btn-links");
-btnLinks.addEventListener("click", () => {
-  playSfx("pop");
-  showLinks = !showLinks;
-  linksGroup.visible = showLinks;
-  btnLinks.classList.toggle("on", showLinks);
-  updateIslandHighlights();
-});
+if (btnLinks) {
+  btnLinks.addEventListener("click", () => {
+    playSfx("pop");
+    showLinks = !showLinks;
+    linksGroup.visible = showLinks;
+    btnLinks.classList.toggle("on", showLinks);
+    updateIslandHighlights();
+  });
+}
 
 const btnSound = document.getElementById("btn-sound");
 btnSound.addEventListener("click", () => {
@@ -4489,39 +4622,62 @@ function animate() {
     item.label.style.transform = `translate(-50%, -100%) translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0)`;
   });
 
-  // Bit 博士在城市街區廣場間巡迴與揮手
+  // Bit 博士搭乘專屬黃色敞篷巡邏車沿馬路網格巡迴與下車揮手
   if (mascotState.pauseTimer > 0) {
     mascotState.pauseTimer -= dt;
-    const g = islandGroups.get(mascotState.fromId);
-    if (g) {
-      mascotGroup.position.set(g.position.x + 2.2, 0.48, g.position.z + 2.2);
-      mascotGroup.userData.arm.rotation.z = -0.6 + Math.sin(elapsed * 9) * 0.5;
-    }
+    mascotGroup.userData.vehicleGroup.visible = false;
+    mascotGroup.userData.charWrap.position.y = 0;
+    const stayPos = getBuildingPlazaPos(mascotState.fromId, 99);
+    mascotState.curPos.copy(stayPos);
+    mascotGroup.position.set(stayPos.x, 0.48 + Math.sin(elapsed * 4) * 0.04, stayPos.z);
+    mascotGroup.userData.arm.rotation.z = -0.6 + Math.sin(elapsed * 9) * 0.5;
     if (mascotState.pauseTimer <= 0) {
       const neighbors = COLLAB_LINKS.filter(l => l.a === mascotState.fromId || l.b === mascotState.fromId).map(l =>
         l.a === mascotState.fromId ? l.b : l.a
       );
       mascotState.toId =
         neighbors.length > 0 ? neighbors[Math.floor(Math.random() * neighbors.length)] : (mascotState.fromId % 15) + 1;
-      mascotState.progress = 0;
+      const destPos = getBuildingPlazaPos(mascotState.toId, 99);
+      mascotState.waypoints = buildRoadWaypoints(mascotState.curPos, destPos);
     }
-  } else {
-    mascotState.progress += dt * 0.48;
-    const gA = islandGroups.get(mascotState.fromId);
-    const gB = islandGroups.get(mascotState.toId);
-    if (gA && gB) {
-      const t = Math.min(1, mascotState.progress);
-      mascotGroup.position.lerpVectors(gA.position, gB.position, t);
-      mascotGroup.position.y = 0.48 + Math.abs(Math.sin(elapsed * 11)) * 0.12;
-      mascotGroup.lookAt(gB.position.x, mascotGroup.position.y, gB.position.z);
+  } else if (mascotState.waypoints && mascotState.waypoints.length > 0) {
+    const wp = mascotState.waypoints[0];
+    const dx = wp.x - mascotState.curPos.x;
+    const dz = wp.z - mascotState.curPos.z;
+    const dist = Math.hypot(dx, dz);
+    const speed = wp.onRoad ? 9.5 : 4.2;
+    const step = speed * dt;
+    mascotGroup.userData.vehicleGroup.visible = Boolean(wp.onRoad);
+    mascotGroup.userData.charWrap.position.y = wp.onRoad ? -0.14 : 0;
+
+    if (dist <= step) {
+      mascotState.curPos.set(wp.x, wp.y, wp.z);
+      mascotState.waypoints.shift();
+    } else {
+      mascotState.curPos.x += (dx / dist) * step;
+      mascotState.curPos.z += (dz / dist) * step;
+      mascotGroup.rotation.y = Math.atan2(dx, dz);
     }
-    if (mascotState.progress >= 1) {
+    if (wp.onRoad && mascotGroup.userData.wheels) {
+      mascotGroup.userData.wheels.forEach(w => {
+        w.rotation.x += dt * 16;
+      });
+    }
+    mascotGroup.position.set(
+      mascotState.curPos.x,
+      (wp.onRoad ? 0.36 : 0.48) + Math.abs(Math.sin(elapsed * 12)) * 0.04,
+      mascotState.curPos.z
+    );
+
+    if (mascotState.waypoints.length === 0) {
       mascotState.fromId = mascotState.toId;
       mascotState.pauseTimer = 3.2;
       if (Math.random() < 0.35 && mascotState.bubbleTimer <= 0) {
         triggerMascotSpeech();
       }
     }
+  } else {
+    mascotState.pauseTimer = 2.0;
   }
 
   if (mascotState.bubbleTimer > 0) {
@@ -4534,17 +4690,47 @@ function animate() {
     if (mascotState.bubbleTimer <= 0) mascotBubble.classList.add("hidden");
   }
 
-  // 更新城區上其他學伴 3D 擬人化市民公仔（在建築正門人行道行走、揮手與頭頂角色名牌投影）
+  // 更新城區上玩家與其他學伴 3D 角色（沿柏油道路網格駕車移動、抵達建築正門下車揮手與頭頂角色名牌投影）
   if (showPeers) {
     peer3DEntities.forEach(ent => {
-      ent.targetPos.y = 0.52;
       const prevX = ent.curPos.x;
       const prevZ = ent.curPos.z;
-      ent.curPos.lerp(ent.targetPos, Math.min(1, dt * 3.2));
-      const dist = Math.hypot(ent.targetPos.x - ent.curPos.x, ent.targetPos.z - ent.curPos.z);
-      const isWalking = dist > 0.18;
-      const isGreeting = ent.greetTimer > 0;
+      let isMoving = false;
+      let onRoadNow = false;
 
+      if (ent.waypoints && ent.waypoints.length > 0) {
+        const wp = ent.waypoints[0];
+        onRoadNow = Boolean(wp.onRoad);
+        const dx = wp.x - ent.curPos.x;
+        const dz = wp.z - ent.curPos.z;
+        const dist = Math.hypot(dx, dz);
+        const speed = onRoadNow ? 10.5 : 4.5;
+        const step = speed * dt;
+        isMoving = true;
+
+        if (dist <= step) {
+          ent.curPos.set(wp.x, wp.y, wp.z);
+          ent.waypoints.shift();
+          if (ent.waypoints.length === 0 && ent.isDriving) {
+            ent.isDriving = false;
+            renderPeerTagContent(ent);
+          }
+        } else {
+          ent.curPos.x += (dx / dist) * step;
+          ent.curPos.z += (dz / dist) * step;
+        }
+      } else {
+        ent.targetPos.y = 0.52;
+        ent.curPos.lerp(ent.targetPos, Math.min(1, dt * 3.2));
+        const dist = Math.hypot(ent.targetPos.x - ent.curPos.x, ent.targetPos.z - ent.curPos.z);
+        isMoving = dist > 0.14;
+        if (ent.isDriving) {
+          ent.isDriving = false;
+          renderPeerTagContent(ent);
+        }
+      }
+
+      const isGreeting = ent.greetTimer > 0;
       if (ent.greetTimer > 0) {
         ent.greetTimer -= dt;
         if (ent.greetTimer <= 0) {
@@ -4553,19 +4739,23 @@ function animate() {
         }
       }
 
-      const hop = isWalking
-        ? Math.abs(Math.sin(elapsed * 11 + ent.phase)) * 0.45
+      const showCar = isMoving && (onRoadNow || ent.isDriving);
+      const hop = showCar
+        ? Math.sin(elapsed * 18 + ent.phase) * 0.025
+        : isMoving
+        ? Math.abs(Math.sin(elapsed * 11 + ent.phase)) * 0.35
         : isGreeting
         ? Math.abs(Math.sin(elapsed * 14)) * 0.28
         : Math.sin(elapsed * 3 + ent.phase) * 0.05;
 
-      ent.group.position.set(ent.curPos.x, 0.48 + hop, ent.curPos.z);
+      const baseY = showCar ? 0.38 : 0.48;
+      ent.group.position.set(ent.curPos.x, baseY + hop, ent.curPos.z);
 
-      // 角色面向：移動時朝向前進方向，靜止時朝向鏡頭並微幅左右擺頭
-      if (isWalking) {
-        const dx = ent.targetPos.x - prevX;
-        const dz = ent.targetPos.z - prevZ;
-        if (Math.hypot(dx, dz) > 0.001) {
+      // 角色面向：移動時朝向道路前進方向，靜止時朝向鏡頭並微幅左右擺頭
+      if (isMoving) {
+        const dx = ent.curPos.x - prevX;
+        const dz = ent.curPos.z - prevZ;
+        if (Math.hypot(dx, dz) > 0.0005) {
           ent.group.rotation.y = Math.atan2(dx, dz);
         }
       } else {
@@ -4575,10 +4765,33 @@ function animate() {
         ent.group.rotation.y = baseYaw + Math.sin(elapsed * 1.8 + ent.phase) * 0.18;
       }
 
-      // 擬人化四肢與頭部微動畫
+      // 擬人化四肢、頭部與專屬敞篷車動畫切換
       const rig = ent.group.userData.rig;
       if (rig) {
-        if (isWalking) {
+        if (rig.vehicleGroup) {
+          rig.vehicleGroup.visible = showCar;
+        }
+        if (rig.charBodyGroup) {
+          rig.charBodyGroup.position.y = showCar ? -0.18 : 0;
+        }
+        if (rig.ring) {
+          rig.ring.visible = !showCar;
+        }
+        if (showCar) {
+          rig.legL.visible = false;
+          rig.legR.visible = false;
+          rig.armL.rotation.x = -0.55;
+          rig.armR.rotation.x = -0.55;
+          rig.armR.rotation.z = -0.25;
+          rig.headGroup.rotation.z = Math.sin(elapsed * 6 + ent.phase) * 0.06;
+          if (rig.wheels) {
+            rig.wheels.forEach(w => {
+              w.rotation.x += dt * 18;
+            });
+          }
+        } else if (isMoving) {
+          rig.legL.visible = true;
+          rig.legR.visible = true;
           const swing = Math.sin(elapsed * 13 + ent.phase) * 0.65;
           rig.legL.rotation.x = swing;
           rig.legR.rotation.x = -swing;
@@ -4587,6 +4800,8 @@ function animate() {
           rig.armR.rotation.z = -0.35;
           rig.headGroup.rotation.z = Math.sin(elapsed * 10 + ent.phase) * 0.08;
         } else {
+          rig.legL.visible = true;
+          rig.legR.visible = true;
           rig.legL.rotation.x = 0;
           rig.legR.rotation.x = 0;
           rig.armL.rotation.x = Math.sin(elapsed * 2.5 + ent.phase) * 0.12;
@@ -4607,7 +4822,7 @@ function animate() {
         ent.tagEl.style.display = "flex";
         let px = (projVec.x * 0.5 + 0.5) * vw;
         let py = (-projVec.y * 0.5 + 0.5) * vh;
-        // 避免學伴頭頂名牌與島嶼關卡名稱重疊：若靠近島嶼標籤則自動往下微移
+        // 避免學伴頭頂名牌與建築關卡名稱重疊：若靠近建築標籤則自動往下微移
         for (let k = 0; k < visibleLabels.length; k++) {
           const lbl = visibleLabels[k];
           if (Math.abs(px - lbl.finalX) < lbl.w * 0.52 + 40 && Math.abs(py - lbl.finalY) < lbl.h * 0.65 + 16) {
