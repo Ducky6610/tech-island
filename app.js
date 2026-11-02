@@ -4355,32 +4355,39 @@ function buildChibiPortraitHTML(avatarEmoji, accentColor = "#f472b6") {
   const safeCol = /^#[0-9a-fA-F]{3,8}$/.test(accentColor) ? accentColor : "#f472b6";
 
   if (avatarEmoji === "👨‍🌾") {
-    // 大富翁「阿土伯」專屬 SVG 立繪：傳統竹編斗笠 + 濃密白眉 + 招牌八字大白鬍 + 慈祥笑容 + 農夫汗衫
+    // 大富翁「阿土伯」原汁原味 SVG 立繪：後傾竹編斗笠 + 大光頭與招風耳 + 粗短白橢圓眉 + 靠攏黑豆眼 + 大圓鼻 + 濃密方塊白鬍 + 淺藍綠農夫衫與脖掛藍毛巾 + 肩扛鋤頭
     return `
-      <span class="chibi-portrait" style="--hood-color:#d97706;">
+      <span class="chibi-portrait" style="--hood-color:#b47b38;">
         <svg viewBox="0 0 44 44" width="28" height="28" aria-hidden="true">
-          <!-- 農夫背心與汗衫 -->
-          <path d="M9 42 C9 31, 35 31, 35 42 Z" fill="#b45309" />
-          <path d="M15 32 L22 41 L29 32" fill="#fef3c7" />
-          <!-- 慈祥健康膚色臉龐 -->
-          <circle cx="22" cy="23.5" r="11" fill="#fcd34d" />
-          <!-- 金黃竹編斗笠（錐形帽頂與寬帽簷） -->
-          <path d="M4 16 Q22 3 40 16 Z" fill="#f59e0b" stroke="#92400e" stroke-width="1.3" />
-          <ellipse cx="22" cy="16" rx="18" ry="3.2" fill="#fbbf24" stroke="#92400e" stroke-width="1.2" />
-          <!-- 濃密白色長壽眉 -->
-          <path d="M13.5 19.5 Q17 17.5 19.5 19.5" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
-          <path d="M24.5 19.5 Q27 17.5 30.5 19.5" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
-          <!-- 笑咪咪眼睛 -->
-          <circle cx="17.2" cy="22.5" r="1.9" fill="#292524" />
-          <circle cx="26.8" cy="22.5" r="1.9" fill="#292524" />
-          <circle cx="16.7" cy="21.9" r="0.7" fill="#ffffff" />
-          <circle cx="26.3" cy="21.9" r="0.7" fill="#ffffff" />
-          <!-- 圓圓紅潤鼻頭 -->
-          <circle cx="22" cy="24.5" r="1.8" fill="#f97316" />
-          <!-- 招牌蓬鬆八字大白鬍子 -->
-          <path d="M22 26.5 C16 25.5, 11 28, 12 30.5 C14 32, 19 30, 22 28.2 C25 30, 30 32, 32 30.5 C33 28, 28 25.5, 22 26.5 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8" />
-          <!-- 開朗笑容 -->
-          <path d="M19.2 29.2 Q22 31.8 24.8 29.2" fill="none" stroke="#991b1b" stroke-width="1.5" stroke-linecap="round" />
+          <!-- 後方微傾的棕色竹編大斗笠（露出飽滿大額頭） -->
+          <path d="M2 19 Q23 1 42 21 Q22 15 2 19 Z" fill="#b47b38" stroke="#5c3a18" stroke-width="1.3" />
+          <path d="M22 6 L10 18 M22 6 L22 16 M22 6 L34 19" stroke="#7c4d22" stroke-width="1" opacity="0.75" />
+          <!-- 肩膀後方露出的鋤頭鐵刃與木柄 -->
+          <rect x="31" y="24" width="7" height="5" rx="1" transform="rotate(25 34 26)" fill="#475569" stroke="#1e293b" stroke-width="1" />
+          <line x1="27" y1="42" x2="34" y2="27" stroke="#854d0e" stroke-width="2.4" stroke-linecap="round" />
+          <!-- 淺藍綠農夫短袖衫 + 白色內衣 + 脖掛水藍汗巾 -->
+          <path d="M9 42 C9 31, 35 31, 35 42 Z" fill="#a7e8d8" stroke="#475569" stroke-width="1" />
+          <path d="M16 32 L22 42 L28 32 Z" fill="#ffffff" />
+          <path d="M13 31 L13 39 M31 31 L31 39" stroke="#38bdf8" stroke-width="3.2" stroke-linecap="round" />
+          <!-- 招風大耳與圓潤紅潤光頭臉龐 -->
+          <ellipse cx="8.5" cy="24.5" rx="3.2" ry="4.2" fill="#ffc4a3" stroke="#7c3f26" stroke-width="1.1" />
+          <ellipse cx="35.5" cy="24.5" rx="3.2" ry="4.2" fill="#ffc4a3" stroke="#7c3f26" stroke-width="1.1" />
+          <circle cx="22" cy="22.5" r="12.2" fill="#ffd0b6" stroke="#7c3f26" stroke-width="1.1" />
+          <!-- 額頭招牌兩塊粗短白橢圓眉（外八微傾） -->
+          <ellipse cx="15.2" cy="14.2" rx="3.7" ry="1.8" transform="rotate(-18 15.2 14.2)" fill="#ffffff" stroke="#5c3a18" stroke-width="1.1" />
+          <ellipse cx="28.8" cy="14.5" rx="3.7" ry="1.8" transform="rotate(18 28.8 14.5)" fill="#ffffff" stroke="#5c3a18" stroke-width="1.1" />
+          <!-- 經典靠攏直立小黑豆眼 -->
+          <ellipse cx="19.3" cy="20.5" rx="1.2" ry="2.0" fill="#1c1917" />
+          <ellipse cx="24.7" cy="20.5" rx="1.2" ry="2.0" fill="#1c1917" />
+          <!-- 飽滿雙頰法令紋與大圓肉鼻 -->
+          <path d="M11.5 23.5 Q9.5 26.8 14 28.8" fill="none" stroke="#9a4e32" stroke-width="1.2" stroke-linecap="round" />
+          <path d="M32.5 23.5 Q34.5 26.8 30 28.8" fill="none" stroke="#9a4e32" stroke-width="1.2" stroke-linecap="round" />
+          <ellipse cx="22" cy="23.8" rx="3.2" ry="2.3" fill="#ffb088" stroke="#7c3f26" stroke-width="1.1" />
+          <!-- 鼻下招牌濃密整塊白鬍子（方圓梯形+鬍鬚紋理） -->
+          <path d="M15 26 C15 24.5, 29 24.5, 29 26 L29.8 30.8 C27 32.5, 17 32.5, 14.2 30.8 Z" fill="#ffffff" stroke="#475569" stroke-width="1.1" />
+          <line x1="19" y1="28.5" x2="19" y2="31.3" stroke="#94a3b8" stroke-width="0.9" />
+          <line x1="22" y1="28.8" x2="22" y2="31.5" stroke="#94a3b8" stroke-width="0.9" />
+          <line x1="25" y1="28.5" x2="25" y2="31.3" stroke="#94a3b8" stroke-width="0.9" />
         </svg>
         <span class="chibi-animal-badge">${safeAv}</span>
       </span>
@@ -4485,33 +4492,44 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const charBodyGroup = new THREE.Group();
   g.add(charBodyGroup);
 
-  // 1. 擬人化雙腿與撞色小球鞋（走路時可前後擺動）
-  const legMat = makeMat(isAtubo ? 0x1e3a8a : isJinbeibei ? 0xfce7f3 : 0x4a3540);
-  const shoeMat = makeMat(isAtubo ? 0x78350f : isJinbeibei ? 0xf43f5e : hexColor);
+  // 1. 擬人化雙腿與鞋子（阿土伯為棕色捲褲管 + 黑色長筒農夫雨鞋）
+  const legMat = makeMat(isAtubo ? 0x7c4a1e : isJinbeibei ? 0xfce7f3 : 0x4a3540);
+  const shoeMat = makeMat(isAtubo ? 0x26211f : isJinbeibei ? 0xf43f5e : hexColor, {
+    roughness: isAtubo ? 0.35 : 0.5
+  });
 
   const legL = new THREE.Group();
   legL.position.set(-0.13, 0.34, 0);
-  const thighL = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.16, 12, 16), legMat);
-  thighL.position.y = -0.08;
-  const shoeL = new THREE.Mesh(new THREE.SphereGeometry(0.105, 16, 16), shoeMat);
-  shoeL.scale.set(1, 0.72, 1.35);
+  const thighL = new THREE.Mesh(new THREE.CapsuleGeometry(0.088, 0.16, 12, 16), legMat);
+  thighL.position.y = -0.06;
+  const shoeL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), shoeMat);
+  shoeL.scale.set(1.05, 0.78, 1.38);
   shoeL.position.set(0, -0.2, 0.04);
   legL.add(thighL, shoeL);
+  if (isAtubo) {
+    // 阿土伯黑色長筒雨鞋筒身與棕色捲褲管邊
+    const bootShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.09, 0.14, 14), shoeMat);
+    bootShaft.position.set(0, -0.13, 0.01);
+    const cuff = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.022, 8, 16), makeMat(0x925828));
+    cuff.rotation.x = Math.PI / 2;
+    cuff.position.set(0, -0.05, 0);
+    legL.add(bootShaft, cuff);
+  }
 
   const legR = legL.clone();
   legR.position.x = 0.13;
   charBodyGroup.add(legL, legR);
 
-  // 2. Q版二頭身圓潤身體（阿土伯為唐裝農夫背心、金貝貝為粉紅包屁衣+星星圍兜兜）
-  const torsoCol = isAtubo ? 0xb45309 : isJinbeibei ? 0xfb7185 : hexColor;
+  // 2. Q版二頭身圓潤身體（阿土伯為淺藍綠開襟農夫短袖衫 + 白色內汗衫 + 脖掛水藍毛巾）
+  const torsoCol = isAtubo ? 0xa7e8d8 : isJinbeibei ? 0xfb7185 : hexColor;
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.28, 18, 28), makeMat(torsoCol));
   torso.position.y = 0.64;
   charBodyGroup.add(torso);
 
-  // 白色圓領巾 / 圍兜兜
+  // 圓領巾 / 圍兜兜 / 阿土伯脖掛水藍汗巾
   const collar = new THREE.Mesh(
-    new THREE.TorusGeometry(0.21, 0.045, 12, 24),
-    makeMat(isAtubo ? 0xfef3c7 : 0xffffff)
+    new THREE.TorusGeometry(0.21, 0.048, 12, 24),
+    makeMat(isAtubo ? 0x67e8f9 : 0xffffff)
   );
   collar.rotation.x = Math.PI / 2;
   collar.position.y = 0.86;
@@ -4526,30 +4544,71 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
     bibStar.position.set(0, 0.74, 0.3);
     charBodyGroup.add(bib, bibStar);
   } else if (isAtubo) {
-    // 阿土伯腰間紅色招財腰帶與金釦
-    const belt = new THREE.Mesh(new THREE.TorusGeometry(0.265, 0.038, 10, 24), makeMat(0xdc2626));
-    belt.rotation.x = Math.PI / 2;
-    belt.position.y = 0.56;
-    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.09, 0.06), makeMat(0xfacc15));
-    buckle.position.set(0, 0.56, 0.27);
-    charBodyGroup.add(belt, buckle);
+    // 阿土伯胸前白色內搭汗衫 + 脖掛水藍毛巾垂下兩端 + 棕色農夫褲頭
+    const undershirt = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.34, 0.14), makeMat(0xffffff));
+    undershirt.position.set(0, 0.68, 0.21);
+    const towelMat = makeMat(0x67e8f9);
+    const towelL = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.25, 0.045), towelMat);
+    towelL.position.set(-0.13, 0.73, 0.26);
+    towelL.rotation.z = 0.08;
+    const towelR = towelL.clone();
+    towelR.position.x = 0.13;
+    towelR.rotation.z = -0.08;
+    const pantsWaist = new THREE.Mesh(new THREE.CylinderGeometry(0.275, 0.26, 0.18, 20), makeMat(0x7c4a1e));
+    pantsWaist.position.y = 0.49;
+    charBodyGroup.add(undershirt, towelL, towelR, pantsWaist);
+
+    // 阿土伯身旁招牌跟班寵物：「粉紅小豬 + 頭頂白雞」（還原經典插畫！）
+    const petGroup = new THREE.Group();
+    petGroup.position.set(0.48, 0.04, 0.12);
+    petGroup.rotation.y = -0.25;
+    const pigMat = makeMat(0xffb6c1);
+    const pigSnoutMat = makeMat(0xff9eb5);
+    const pigBody = new THREE.Mesh(new THREE.SphereGeometry(0.19, 18, 18), pigMat);
+    pigBody.scale.set(0.95, 0.85, 1.25);
+    pigBody.position.y = 0.17;
+    const pigSnout = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.09, 14), pigSnoutMat);
+    pigSnout.rotation.x = Math.PI / 2;
+    pigSnout.position.set(0, 0.14, 0.23);
+    const pigEarL = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.1, 10), pigMat);
+    pigEarL.position.set(-0.12, 0.28, 0.1);
+    pigEarL.rotation.set(0.4, 0, 0.5);
+    const pigEarR = pigEarL.clone();
+    pigEarR.position.x = 0.12;
+    pigEarR.rotation.z = -0.5;
+    // 站在小豬背上的大眼白雞
+    const chickBody = new THREE.Mesh(new THREE.SphereGeometry(0.125, 16, 16), makeMat(0xffffff));
+    chickBody.scale.set(0.9, 1.15, 0.95);
+    chickBody.position.set(0, 0.4, 0.02);
+    const chickComb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), makeMat(0xef4444));
+    chickComb.scale.set(0.6, 1.3, 1.1);
+    chickComb.position.set(0, 0.55, 0.04);
+    const chickBeak = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.07, 10), makeMat(0xf97316));
+    chickBeak.rotation.x = Math.PI / 2;
+    chickBeak.position.set(0, 0.42, 0.15);
+    const chickEyeL = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), makeMat(0xe0f2fe));
+    chickEyeL.position.set(-0.035, 0.46, 0.12);
+    const chickEyeR = chickEyeL.clone();
+    chickEyeR.position.x = 0.035;
+    petGroup.add(pigBody, pigSnout, pigEarL, pigEarR, chickBody, chickComb, chickBeak, chickEyeL, chickEyeR);
+    charBodyGroup.add(petGroup);
+  } else {
+    // 背後立體探險小書包（金貝貝背著粉嫩天使小背包、其他學伴背著探險書包）
+    const backpack = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 20, 20),
+      makeMat(isJinbeibei ? 0xfda4af : 0xfef08a)
+    );
+    backpack.scale.set(0.95, 1.1, 0.65);
+    backpack.position.set(0, 0.64, -0.23);
+    const packPocket = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), makeMat(0xffffff));
+    packPocket.scale.set(1, 0.7, 0.5);
+    packPocket.position.set(0, 0.58, -0.32);
+    charBodyGroup.add(backpack, packPocket);
   }
 
-  // 背後立體探險小書包（阿土伯背著豐收黃金米袋、金貝貝背著粉嫩天使小背包）
-  const backpack = new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 20, 20),
-    makeMat(isAtubo ? 0xf59e0b : isJinbeibei ? 0xfda4af : 0xfef08a)
-  );
-  backpack.scale.set(0.95, 1.1, 0.65);
-  backpack.position.set(0, 0.64, -0.23);
-  const packPocket = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), makeMat(0xffffff));
-  packPocket.scale.set(1, 0.7, 0.5);
-  packPocket.position.set(0, 0.58, -0.32);
-  charBodyGroup.add(backpack, packPocket);
-
-  // 3. 擬人化雙臂與粉嫩小圓手（阿土伯手捧金元寶，金貝貝手拿小奶瓶，學伴拿課本）
-  const skinMat = makeMat(isAtubo ? 0xfcd34d : 0xffe5d4);
-  const sleeveMat = makeMat(isAtubo ? 0xfef3c7 : torsoCol);
+  // 3. 擬人化雙臂與粉嫩小圓手（阿土伯手握長柄鋤頭扛在左肩，金貝貝手拿小奶瓶，學伴拿課本）
+  const skinMat = makeMat(isAtubo ? 0xffc8ad : 0xffe5d4);
+  const sleeveMat = makeMat(isAtubo ? 0xa7e8d8 : torsoCol);
 
   const armL = new THREE.Group();
   armL.position.set(-0.32, 0.78, 0);
@@ -4559,12 +4618,22 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   handL.position.y = -0.23;
 
   if (isAtubo) {
-    // 阿土伯左手捧著大富翁閃亮「金元寶」
-    const goldMat = makeMat(0xfacc15, { roughness: 0.2, metalness: 0.65 });
-    const ingot = new THREE.Mesh(new THREE.OctahedronGeometry(0.13, 0), goldMat);
-    ingot.scale.set(1.4, 0.75, 0.9);
-    ingot.position.set(-0.02, -0.24, 0.12);
-    armL.add(upperArmL, handL, ingot);
+    // 阿土伯左手握著長木柄「鋤頭」斜扛在肩上（完全對應原畫姿勢！）
+    const hoeGroup = new THREE.Group();
+    const hoeShaft = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.026, 0.028, 1.15, 10),
+      makeMat(0x8c4f1d, { roughness: 0.75 })
+    );
+    hoeShaft.position.set(0.02, -0.1, 0.05);
+    hoeShaft.rotation.set(0.22, 0, -0.22);
+    const hoeBlade = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.22, 0.045),
+      makeMat(0x334155, { roughness: 0.35, metalness: 0.6 })
+    );
+    hoeBlade.position.set(0.14, 0.38, -0.12);
+    hoeBlade.rotation.set(0.25, 0.2, -0.35);
+    hoeGroup.add(hoeShaft, hoeBlade);
+    armL.add(upperArmL, handL, hoeGroup);
   } else if (isJinbeibei) {
     // 金貝貝左手拿著「寶寶牛奶瓶」
     const bottleGroup = new THREE.Group();
@@ -4584,7 +4653,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
     miniBook.rotation.set(0.4, 0.3, 0.2);
     armL.add(upperArmL, handL, miniBook);
   }
-  armL.rotation.z = 0.32;
+  armL.rotation.z = isAtubo ? 0.18 : 0.32;
 
   const armR = new THREE.Group();
   armR.position.set(0.32, 0.78, 0);
@@ -4593,48 +4662,55 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const handR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 14), skinMat);
   handR.position.y = -0.23;
   armR.add(upperArmR, handR);
-  armR.rotation.z = -0.45;
+  armR.rotation.z = isAtubo ? -0.22 : -0.45;
   charBodyGroup.add(armL, armR);
 
   // 4. Q版擬人化頭部（含粉嫩臉龐、水汪汪大眼、眼神高光、腮紅、微笑與角色專屬頭飾）
   const headGroup = new THREE.Group();
   headGroup.position.y = 1.22;
 
-  // 粉嫩圓臉蛋
-  const face = new THREE.Mesh(new THREE.SphereGeometry(0.35, 28, 28), skinMat);
+  // 粉嫩圓臉蛋（阿土伯為飽滿大光頭圓臉）
+  const face = new THREE.Mesh(new THREE.SphereGeometry(isAtubo ? 0.37 : 0.35, 28, 28), skinMat);
   headGroup.add(face);
 
-  // 後腦勺包覆（阿土伯為白髮髻、金貝貝為粉嫩嬰兒頭、其餘為動物連帽頭套）
-  if (!isJinbeibei) {
+  // 後腦勺連帽包覆（阿土伯與金貝貝皆露出原本圓頭與招風耳，不戴連帽套）
+  if (!isJinbeibei && !isAtubo) {
     const hoodBack = new THREE.Mesh(
       new THREE.SphereGeometry(0.37, 26, 26),
-      makeMat(isAtubo ? 0xf8fafc : hexColor)
+      makeMat(hexColor)
     );
     hoodBack.position.set(0, 0.04, -0.05);
     headGroup.add(hoodBack);
   }
 
-  // 水汪汪大眼睛 + 白色閃亮眼神光
+  // 眼睛（阿土伯為經典靠攏直立小黑豆眼；其他角色為水汪汪大眼睛）
   const eyeMat = makeMat(0x231924);
   const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(isJinbeibei ? 0.062 : 0.052, 14, 14), eyeMat);
-  eyeL.scale.set(0.9, 1.15, 0.6);
-  eyeL.position.set(-0.12, 0.02, 0.31);
+  const eyeL = new THREE.Mesh(
+    new THREE.SphereGeometry(isAtubo ? 0.036 : isJinbeibei ? 0.062 : 0.052, 14, 14),
+    eyeMat
+  );
+  eyeL.scale.set(isAtubo ? 0.72 : 0.9, isAtubo ? 1.35 : 1.15, 0.6);
+  eyeL.position.set(isAtubo ? -0.068 : -0.12, isAtubo ? 0.05 : 0.02, isAtubo ? 0.35 : 0.31);
   const eyeR = eyeL.clone();
-  eyeR.position.x = 0.12;
+  eyeR.position.x = isAtubo ? 0.068 : 0.12;
 
   const sparkL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), sparkMat);
   sparkL.position.set(-0.105, 0.045, 0.345);
   const sparkR = sparkL.clone();
   sparkR.position.x = 0.135;
+  if (isAtubo) {
+    sparkL.visible = false;
+    sparkR.visible = false;
+  }
 
-  // 粉紅蘋果肌腮紅
-  const cheekMat = makeMat(0xfb7185);
-  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.062, 14, 14), cheekMat);
-  cheekL.scale.set(1.2, 0.75, 0.5);
-  cheekL.position.set(-0.21, -0.05, 0.28);
+  // 粉紅蘋果肌腮紅（阿土伯改為澎澎肉臉頰）
+  const cheekMat = makeMat(isAtubo ? 0xffb396 : 0xfb7185);
+  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(isAtubo ? 0.095 : 0.062, 14, 14), cheekMat);
+  cheekL.scale.set(1.2, 0.8, 0.55);
+  cheekL.position.set(-0.2, -0.05, 0.29);
   const cheekR = cheekL.clone();
-  cheekR.position.x = 0.21;
+  cheekR.position.x = 0.2;
 
   // 微笑弧形小嘴
   const smile = new THREE.Mesh(
@@ -4651,40 +4727,57 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const earMainMat = makeMat(hexColor);
 
   if (isAtubo) {
-    // 《大富翁》阿土伯專屬 3D 造型：傳統竹編寬簷斗笠 + 濃密白眉 + 圓紅鼻 + 招牌翹八字大白鬍
-    const bambooMat = makeMat(0xf59e0b, { roughness: 0.55 });
-    const rimMat = makeMat(0xd97706, { roughness: 0.6 });
-    const whiteHairMat = makeMat(0xffffff, { roughness: 0.4 });
+    // 《大富翁》阿土伯原畫 3D 造型：微向後傾的棕色竹編斗笠 + 招風大耳 + 額頭兩塊白橢圓粗眉 + 大圓肉鼻 + 濃密方塊白鬍子
+    const bambooMat = makeMat(0xb47b38, { roughness: 0.65 });
+    const rimMat = makeMat(0x7c4d22, { roughness: 0.7 });
+    const whiteHairMat = makeMat(0xffffff, { roughness: 0.35 });
 
-    // 竹編斗笠錐頂與外圈編織環
-    const hatCone = new THREE.Mesh(new THREE.ConeGeometry(0.58, 0.28, 28), bambooMat);
-    hatCone.position.set(0, 0.36, 0);
-    const hatRim = new THREE.Mesh(new THREE.TorusGeometry(0.57, 0.032, 10, 28), rimMat);
+    // 微向後傾的竹編斗笠（露出飽滿大光頭額頭與白眉）
+    const hatGroup = new THREE.Group();
+    const hatCone = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.32, 24), bambooMat);
+    hatCone.position.y = 0.14;
+    const hatRim = new THREE.Mesh(new THREE.TorusGeometry(0.61, 0.032, 10, 24), rimMat);
     hatRim.rotation.x = Math.PI / 2;
-    hatRim.position.set(0, 0.22, 0);
+    hatGroup.add(hatCone, hatRim);
+    hatGroup.position.set(0, 0.2, -0.1);
+    hatGroup.rotation.x = -0.38;
+    hatGroup.rotation.z = -0.06;
 
-    // 濃密白眉毛
-    const browL = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.1, 8, 12), whiteHairMat);
-    browL.position.set(-0.13, 0.13, 0.33);
-    browL.rotation.z = Math.PI / 2 - 0.2;
+    // 兩側飽滿招風大耳
+    const earL = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 14), skinMat);
+    earL.scale.set(0.65, 1.15, 0.8);
+    earL.position.set(-0.36, -0.02, 0.02);
+    const earR = earL.clone();
+    earR.position.x = 0.36;
+
+    // 額頭兩塊招牌粗短白橢圓眉（外八微傾）
+    const browL = new THREE.Mesh(new THREE.SphereGeometry(0.068, 14, 14), whiteHairMat);
+    browL.scale.set(1.35, 0.68, 0.5);
+    browL.position.set(-0.14, 0.19, 0.32);
+    browL.rotation.z = 0.32;
     const browR = browL.clone();
-    browR.position.x = 0.13;
-    browR.rotation.z = Math.PI / 2 + 0.2;
+    browR.position.x = 0.14;
+    browR.rotation.z = -0.32;
 
-    // 慈祥紅潤圓鼻頭
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.048, 14, 14), makeMat(0xf97316));
-    nose.position.set(0, -0.01, 0.36);
+    // 飽滿大圓肉鼻頭
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.064, 16, 16), makeMat(0xffa882));
+    nose.scale.set(1.2, 0.9, 1.0);
+    nose.position.set(0, -0.01, 0.37);
 
-    // 招牌蓬鬆八字大白鬍子（左右對稱上翹）
-    const stacheL = new THREE.Mesh(new THREE.CapsuleGeometry(0.042, 0.14, 10, 14), whiteHairMat);
-    stacheL.position.set(-0.09, -0.06, 0.35);
-    stacheL.rotation.z = Math.PI / 2 + 0.28;
-    const stacheR = stacheL.clone();
-    stacheR.position.x = 0.09;
-    stacheR.rotation.z = Math.PI / 2 - 0.28;
+    // 鼻下招牌濃密整塊白鬍子（方圓梯形厚白鬍，完全蓋住上唇）
+    const stacheGroup = new THREE.Group();
+    const stacheCenter = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.11, 0.09), whiteHairMat);
+    const stacheSideL = new THREE.Mesh(new THREE.CapsuleGeometry(0.048, 0.04, 10, 12), whiteHairMat);
+    stacheSideL.position.set(-0.09, -0.005, 0);
+    stacheSideL.rotation.z = 0.18;
+    const stacheSideR = stacheSideL.clone();
+    stacheSideR.position.x = 0.09;
+    stacheSideR.rotation.z = -0.18;
+    stacheGroup.add(stacheCenter, stacheSideL, stacheSideR);
+    stacheGroup.position.set(0, -0.095, 0.355);
 
-    smile.position.y = -0.11;
-    headGroup.add(hatCone, hatRim, browL, browR, nose, stacheL, stacheR);
+    smile.visible = false;
+    headGroup.add(hatGroup, earL, earR, browL, browR, nose, stacheGroup);
   } else if (isJinbeibei) {
     // 《大富翁》金貝貝專屬 3D 造型：招牌粉紅奶嘴 + 頭頂 Q彈金色小捲毛 + 圓潤嬰兒小耳
     smile.visible = false; // 嘴巴叼著可愛粉紅奶嘴
