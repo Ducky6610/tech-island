@@ -176,7 +176,7 @@ function cleanUserText(str, fallback = "", maxLen = 12) {
   return (s || fallback).slice(0, maxLen);
 }
 
-const AVATAR_CHOICES = ["🐣", "🐰", "🦊", "🐱", "🐼", "🐹", "🦄", "🐨", "🐯", "🐸", "🦁", "🐲"];
+const AVATAR_CHOICES = ["👨‍🌾", "👶", "🐣", "🐰", "🦊", "🐱", "🐼", "🐹", "🦄", "🐨", "🐯", "🐸", "🦁", "🐲"];
 
 const defaultSave = {
   xp: 0,
@@ -2076,19 +2076,24 @@ function buildRoadWaypoints(startVec, destVec) {
   return pts;
 }
 
-// 建立學伴與使用者專屬的 3D 敞篷小跑車座駕（移動時搭乘於道路行駛）
-function createPeerConvertibleMesh(hexColor = 0xf472b6) {
+// 建立學伴與使用者專屬的 3D 敞篷小跑車座駕（移動時搭乘於道路行駛，阿土伯與金貝貝擁有專屬主題座駕）
+function createPeerConvertibleMesh(hexColor = 0xf472b6, avatarEmoji = "") {
   const vehicleGroup = new THREE.Group();
-  const bodyMat = makeMat(hexColor, { roughness: 0.3 });
-  const trimMat = makeMat(0xffffff, { roughness: 0.35 });
+  const isAtubo = avatarEmoji === "👨‍🌾";
+  const isJinbeibei = avatarEmoji === "👶";
+
+  const bodyCol = isAtubo ? 0xdc2626 : isJinbeibei ? 0xfb7185 : hexColor;
+  const trimCol = isAtubo ? 0xfbbf24 : 0xffffff;
+  const bodyMat = makeMat(bodyCol, { roughness: 0.3 });
+  const trimMat = makeMat(trimCol, { roughness: 0.35 });
   const interiorMat = makeMat(0x1e293b, { roughness: 0.6 });
   const glassMat = makeGlowMat(0xbae6fd, 0.45);
   const wheelRubberMat = makeMat(0x1e293b, { roughness: 0.85 });
-  const wheelHubMat = makeMat(0xe2e8f0, { roughness: 0.3, metalness: 0.6 });
+  const wheelHubMat = makeMat(isAtubo ? 0xfacc15 : 0xe2e8f0, { roughness: 0.3, metalness: 0.6 });
   const headlightMat = makeGlowMat(0xfef08a, 0.9);
   const taillightMat = makeGlowMat(0xef4444, 0.85);
 
-  // 車體底盤與白色流線飾條
+  // 車體底盤與流線飾條
   const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.28, 1.52), bodyMat);
   chassis.position.y = 0.2;
   const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.06, 1.18), trimMat);
@@ -2106,6 +2111,35 @@ function createPeerConvertibleMesh(hexColor = 0xf472b6) {
 
   vehicleGroup.add(chassis, stripe, cockpit, steering, windshield);
 
+  if (isAtubo) {
+    // 阿土伯專屬「發財鐵牛農夫小貨卡」：車頭排氣煙囪 + 閃亮金元寶車頭立標 + 後車斗木柵欄
+    const goldMat = makeMat(0xfacc15, { roughness: 0.2, metalness: 0.65 });
+    const woodMat = makeMat(0x92400e, { roughness: 0.7 });
+    const ingotHood = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), goldMat);
+    ingotHood.scale.set(1.35, 0.75, 0.9);
+    ingotHood.position.set(0, 0.39, 0.64);
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.38, 10), makeMat(0x475569));
+    pipe.position.set(0.38, 0.46, 0.38);
+    const railL = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.56), woodMat);
+    railL.position.set(-0.42, 0.4, -0.44);
+    const railR = railL.clone();
+    railR.position.x = 0.42;
+    vehicleGroup.add(ingotHood, pipe, railL, railR);
+  } else if (isJinbeibei) {
+    // 金貝貝專屬「夢幻粉紅嬰兒車敞篷跑車」：後折疊蕾絲遮陽篷 + 車頭奶嘴星芒徽章
+    const canopyMat = makeMat(0xfda4af, { roughness: 0.4 });
+    const canopy = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.42, 0.42, 0.84, 14, 1, false, 0, Math.PI * 0.65),
+      canopyMat
+    );
+    canopy.rotation.z = Math.PI / 2;
+    canopy.rotation.x = -0.45;
+    canopy.position.set(0, 0.34, -0.36);
+    const pacifierBadge = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.025, 10, 18), makeMat(0xfef08a));
+    pacifierBadge.position.set(0, 0.26, 0.77);
+    vehicleGroup.add(canopy, pacifierBadge);
+  }
+
   // 車頭大燈與車尾煞車燈
   for (const lx of [-0.28, 0.28]) {
     const hl = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.04), headlightMat);
@@ -2115,14 +2149,16 @@ function createPeerConvertibleMesh(hexColor = 0xf472b6) {
     vehicleGroup.add(hl, tl);
   }
 
-  // 四顆可動車輪
+  // 四顆可動車輪（阿土伯後輪加大呈現鐵牛牽引車質感）
   const wheels = [];
   for (const [wx, wz] of [[-0.44, 0.46], [0.44, 0.46], [-0.44, -0.46], [0.44, -0.46]]) {
     const wGroup = new THREE.Group();
-    wGroup.position.set(wx, 0.13, wz);
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.09, 12), wheelRubberMat);
+    const isRear = wz < 0;
+    const wScale = isAtubo && isRear ? 1.22 : 1.0;
+    wGroup.position.set(wx, 0.13 * wScale, wz);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.13 * wScale, 0.13 * wScale, 0.09, 12), wheelRubberMat);
     tire.rotation.z = Math.PI / 2;
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.095, 10), wheelHubMat);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.075 * wScale, 0.075 * wScale, 0.095, 10), wheelHubMat);
     hub.rotation.z = Math.PI / 2;
     wGroup.add(tire, hub);
     vehicleGroup.add(wGroup);
@@ -4268,12 +4304,14 @@ function sanitizePeerObject(raw) {
   return { id, name, avatar, color: "#f472b6", chId, action, stars, lv, ts: Date.now() };
 }
 
-// 預設 4 位活潑的 AI 虛擬學伴，讓單人練習時島上也熱鬧滾滾！
+// 經典《大富翁》傳奇角色「阿土伯」與「金貝貝」領銜，搭配 4 位活潑 AI 虛擬學伴，讓島上熱鬧滾滾！
 const aiClassmates = [
-  { id: "ai_1", name: "小櫻學伴", avatar: "🐰", color: "#f472b6", hex: 0xf472b6, chId: 2, startChId: 1, targetChId: 2, action: "研讀 2-1 數字系統", stars: 12, lv: 3, offsetAngle: 0.6 },
-  { id: "ai_2", name: "阿凱同學", avatar: "🦊", color: "#60a5fa", hex: 0x60a5fa, chId: 4, startChId: 7, targetChId: 4, action: "挑戰雲端服務測驗", stars: 18, lv: 4, offsetAngle: 2.1 },
-  { id: "ai_3", name: "奶茶喵喵", avatar: "🐱", color: "#fbbf24", hex: 0xfbbf24, chId: 11, startChId: 6, targetChId: 11, action: "收集通訊小辭典", stars: 9, lv: 2, offsetAngle: 3.7 },
-  { id: "ai_4", name: "宇軒學長", avatar: "🐼", color: "#34d399", hex: 0x34d399, chId: 15, startChId: 10, targetChId: 15, action: "練習 IPv4 子網路遮罩", stars: 27, lv: 6, offsetAngle: 5.1 }
+  { id: "ai_atubo", name: "阿土伯", avatar: "👨‍🌾", color: "#d97706", hex: 0xd97706, chId: 10, startChId: 1, targetChId: 10, action: "貪財貪財！巡視電商地產", stars: 36, lv: 8, offsetAngle: 0.2 },
+  { id: "ai_jinbeibei", name: "金貝貝", avatar: "👶", color: "#fb7185", hex: 0xfb7185, chId: 6, startChId: 14, targetChId: 6, action: "哇咿呀🍼！探索智慧財產", stars: 30, lv: 7, offsetAngle: 1.35 },
+  { id: "ai_1", name: "小櫻學伴", avatar: "🐰", color: "#f472b6", hex: 0xf472b6, chId: 2, startChId: 1, targetChId: 2, action: "研讀 2-1 數字系統", stars: 12, lv: 3, offsetAngle: 2.3 },
+  { id: "ai_2", name: "阿凱同學", avatar: "🦊", color: "#60a5fa", hex: 0x60a5fa, chId: 4, startChId: 7, targetChId: 4, action: "挑戰雲端服務測驗", stars: 18, lv: 4, offsetAngle: 3.4 },
+  { id: "ai_3", name: "奶茶喵喵", avatar: "🐱", color: "#fbbf24", hex: 0xfbbf24, chId: 11, startChId: 6, targetChId: 11, action: "收集通訊小辭典", stars: 9, lv: 2, offsetAngle: 4.5 },
+  { id: "ai_4", name: "宇軒學長", avatar: "🐼", color: "#34d399", hex: 0x34d399, chId: 15, startChId: 10, targetChId: 15, action: "練習 IPv4 子網路遮罩", stars: 27, lv: 6, offsetAngle: 5.5 }
 ];
 
 const remoteRealPeers = new Map(); // 來自 /api/state 或 BroadcastChannel 的真人分頁/同學
@@ -4282,11 +4320,12 @@ const peersRootGroup = new THREE.Group();
 scene.add(peersRootGroup);
 
 const activityFeedList = [
+  { id: "init_atubo", text: "👨‍🌾 阿土伯 駕著發財車抵達 Ch.10《電子商務》：「貪財、貪財啦！知識就是財富！」", chId: 10 },
+  { id: "init_jinbeibei", text: "👶 金貝貝 坐著粉紅嬰兒敞篷車來到 Ch.06《智慧財產權》：「哇～咿呀🍼！」", chId: 6 },
   { id: "init_1", text: "🐰 小櫻學伴 在 Ch.02《數位化概念》獲得了 ⭐⭐！", chId: 2 },
-  { id: "init_2", text: "🐼 宇軒學長 在 Ch.15《IP位址與網域名稱》奪得 ⭐⭐⭐ 皇冠！", chId: 15 },
-  { id: "init_3", text: "🦊 阿凱同學 正在 Ch.04 研讀 IaaS、PaaS、SaaS 雲端架構", chId: 4 }
+  { id: "init_2", text: "🐼 宇軒學長 在 Ch.15《IP位址與網域名稱》奪得 ⭐⭐⭐ 皇冠！", chId: 15 }
 ];
-const seenEventIds = new Set(["init_1", "init_2", "init_3"]);
+const seenEventIds = new Set(["init_atubo", "init_jinbeibei", "init_1", "init_2"]);
 
 const PEER_GREETINGS = [
   "嗨！這關的重點超有趣，我們一起拿 ⭐⭐⭐ 滿星吧！",
@@ -4296,10 +4335,89 @@ const PEER_GREETINGS = [
   "耶～遇到學伴了！一起集滿 45 顆星解鎖傳奇島主吧！"
 ];
 
-// 產生 Q版擬人化動物帽兜學伴半身立繪 SVG（用於頭頂名牌與共學看板）
+const ATUBO_GREETINGS = [
+  "貪財、貪財啦！少年仔，讀好數位科技比買土地還賺喔！💰",
+  "嘿嘿～偶阿土伯跟你說，這棟大樓的重點題庫超讚的啦！🌾",
+  "無禁無忌，吃百二！一步一腳印把 45 顆星通通收起來！✨",
+  "少年仔真打拚！阿土伯送你一個金元寶祝福，考試穩過啦！🏮"
+];
+
+const JINBEIBEI_GREETINGS = [
+  "哇～咿呀🍼！（揮舞小奶瓶幫你加油，一起拿 ⭐⭐⭐！）",
+  "咿呀～咔咔！👶✨（指向大樓裡閃閃發光的重點寶箱！）",
+  "哇嗚～啵啵🍼！（開心轉圈圈，這關的動畫跟測驗超好玩！）",
+  "咿呀咿呀～🌟（咬著粉紅奶嘴對你露出超萌微笑！）"
+];
+
+// 產生 Q版角色半身立繪 SVG（支援《大富翁》阿土伯斗笠白鬍造型、金貝貝捲毛奶嘴造型與擬人化動物帽兜）
 function buildChibiPortraitHTML(avatarEmoji, accentColor = "#f472b6") {
   const safeAv = escapeHTML(avatarEmoji || "🐣");
   const safeCol = /^#[0-9a-fA-F]{3,8}$/.test(accentColor) ? accentColor : "#f472b6";
+
+  if (avatarEmoji === "👨‍🌾") {
+    // 大富翁「阿土伯」專屬 SVG 立繪：傳統竹編斗笠 + 濃密白眉 + 招牌八字大白鬍 + 慈祥笑容 + 農夫汗衫
+    return `
+      <span class="chibi-portrait" style="--hood-color:#d97706;">
+        <svg viewBox="0 0 44 44" width="28" height="28" aria-hidden="true">
+          <!-- 農夫背心與汗衫 -->
+          <path d="M9 42 C9 31, 35 31, 35 42 Z" fill="#b45309" />
+          <path d="M15 32 L22 41 L29 32" fill="#fef3c7" />
+          <!-- 慈祥健康膚色臉龐 -->
+          <circle cx="22" cy="23.5" r="11" fill="#fcd34d" />
+          <!-- 金黃竹編斗笠（錐形帽頂與寬帽簷） -->
+          <path d="M4 16 Q22 3 40 16 Z" fill="#f59e0b" stroke="#92400e" stroke-width="1.3" />
+          <ellipse cx="22" cy="16" rx="18" ry="3.2" fill="#fbbf24" stroke="#92400e" stroke-width="1.2" />
+          <!-- 濃密白色長壽眉 -->
+          <path d="M13.5 19.5 Q17 17.5 19.5 19.5" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+          <path d="M24.5 19.5 Q27 17.5 30.5 19.5" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+          <!-- 笑咪咪眼睛 -->
+          <circle cx="17.2" cy="22.5" r="1.9" fill="#292524" />
+          <circle cx="26.8" cy="22.5" r="1.9" fill="#292524" />
+          <circle cx="16.7" cy="21.9" r="0.7" fill="#ffffff" />
+          <circle cx="26.3" cy="21.9" r="0.7" fill="#ffffff" />
+          <!-- 圓圓紅潤鼻頭 -->
+          <circle cx="22" cy="24.5" r="1.8" fill="#f97316" />
+          <!-- 招牌蓬鬆八字大白鬍子 -->
+          <path d="M22 26.5 C16 25.5, 11 28, 12 30.5 C14 32, 19 30, 22 28.2 C25 30, 30 32, 32 30.5 C33 28, 28 25.5, 22 26.5 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8" />
+          <!-- 開朗笑容 -->
+          <path d="M19.2 29.2 Q22 31.8 24.8 29.2" fill="none" stroke="#991b1b" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        <span class="chibi-animal-badge">${safeAv}</span>
+      </span>
+    `;
+  }
+
+  if (avatarEmoji === "👶") {
+    // 大富翁「金貝貝」專屬 SVG 立繪：Q彈小捲毛 + 圓滾滾粉嫩嬰兒臉 + 閃亮大眼 + 招牌粉紅奶嘴 + 星星圍兜兜
+    return `
+      <span class="chibi-portrait" style="--hood-color:#fb7185;">
+        <svg viewBox="0 0 44 44" width="28" height="28" aria-hidden="true">
+          <!-- 粉紅嬰兒連身衣與白色圍兜兜 -->
+          <path d="M10 42 C10 31, 34 31, 34 42 Z" fill="#fb7185" />
+          <path d="M14 32 Q22 39 30 32 Z" fill="#ffffff" />
+          <!-- 圓滾滾粉嫩嬰兒小耳朵與臉蛋 -->
+          <circle cx="10.2" cy="23.5" r="3.2" fill="#ffe4e6" />
+          <circle cx="33.8" cy="23.5" r="3.2" fill="#ffe4e6" />
+          <circle cx="22" cy="22.5" r="11.8" fill="#ffe8d6" />
+          <!-- 頭頂招牌 Q彈金色小捲毛 -->
+          <path d="M19 11 C19 6.5, 25.5 6.5, 24.5 11 C23.8 13.5, 20.5 12.5, 22 9.5" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linecap="round" />
+          <!-- 超大水汪汪嬰兒電眼 -->
+          <circle cx="17" cy="21.8" r="2.5" fill="#1e1b4b" />
+          <circle cx="27" cy="21.8" r="2.5" fill="#1e1b4b" />
+          <circle cx="16.2" cy="21" r="1" fill="#ffffff" />
+          <circle cx="26.2" cy="21" r="1" fill="#ffffff" />
+          <!-- 粉嫩嬰兒腮紅 -->
+          <ellipse cx="13.5" cy="24.8" rx="2.6" ry="1.5" fill="#fb7185" opacity="0.75" />
+          <ellipse cx="30.5" cy="24.8" rx="2.6" ry="1.5" fill="#fb7185" opacity="0.75" />
+          <!-- 招牌粉紅奶嘴（擋板 + 拉環） -->
+          <ellipse cx="22" cy="26.8" rx="4.2" ry="3" fill="#f43f5e" stroke="#ffffff" stroke-width="1" />
+          <circle cx="22" cy="28.2" r="2.4" fill="none" stroke="#fef08a" stroke-width="1.6" />
+        </svg>
+        <span class="chibi-animal-badge">${safeAv}</span>
+      </span>
+    `;
+  }
+
   return `
     <span class="chibi-portrait" style="--hood-color:${safeCol};">
       <svg viewBox="0 0 44 44" width="28" height="28" aria-hidden="true">
@@ -4335,15 +4453,19 @@ function buildChibiPortraitHTML(avatarEmoji, accentColor = "#f472b6") {
 
 // 根據动作文字推斷擬人化表情與動作小圖示
 function getHumanizedActionBadge(actionStr = "") {
+  if (actionStr.includes("貪財") || actionStr.includes("地產")) return "💰 算盤巡視中";
+  if (actionStr.includes("哇咿呀") || actionStr.includes("🍼")) return "🍼 搖奶瓶探索中";
   if (actionStr.includes("測驗") || actionStr.includes("挑戰")) return "✍️ 振筆解題中";
   if (actionStr.includes("圖鑑") || actionStr.includes("辭典")) return "🃏 翻閱圖鑑中";
   if (actionStr.includes("研讀") || actionStr.includes("寶箱")) return "📖 專心研讀中";
   return "🏃 活力探索中";
 }
 
-// 建立 3D Q版二頭身擬人化學伴公仔（含五官、雙手雙腳、小書包、課本、動物立體耳帽與專屬個人敞篷代步車）
+// 建立 3D Q版二頭身擬人化學伴公仔（含阿土伯斗笠白鬍造型、金貝貝奶嘴捲毛造型、動物立體耳帽與專屬個人敞篷代步車）
 function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const g = new THREE.Group();
+  const isAtubo = avatarEmoji === "👨‍🌾";
+  const isJinbeibei = avatarEmoji === "👶";
 
   // 腳底柔和光環底座
   const ring = new THREE.Mesh(
@@ -4355,7 +4477,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   g.add(ring);
 
   // 角色專屬個人敞篷小汽車（沿馬路移動時顯示，抵達建築正門廣場時隱藏）
-  const { vehicleGroup, wheels } = createPeerConvertibleMesh(hexColor);
+  const { vehicleGroup, wheels } = createPeerConvertibleMesh(hexColor, avatarEmoji);
   vehicleGroup.visible = false;
   g.add(vehicleGroup);
 
@@ -4364,8 +4486,8 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   g.add(charBodyGroup);
 
   // 1. 擬人化雙腿與撞色小球鞋（走路時可前後擺動）
-  const legMat = makeMat(0x4a3540);
-  const shoeMat = makeMat(hexColor);
+  const legMat = makeMat(isAtubo ? 0x1e3a8a : isJinbeibei ? 0xfce7f3 : 0x4a3540);
+  const shoeMat = makeMat(isAtubo ? 0x78350f : isJinbeibei ? 0xf43f5e : hexColor);
 
   const legL = new THREE.Group();
   legL.position.set(-0.13, 0.34, 0);
@@ -4380,19 +4502,44 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   legR.position.x = 0.13;
   charBodyGroup.add(legL, legR);
 
-  // 2. Q版二頭身圓潤身體（連帽探險服 + 白色小領巾 + 背後雙色小書包）
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.28, 18, 28), makeMat(hexColor));
+  // 2. Q版二頭身圓潤身體（阿土伯為唐裝農夫背心、金貝貝為粉紅包屁衣+星星圍兜兜）
+  const torsoCol = isAtubo ? 0xb45309 : isJinbeibei ? 0xfb7185 : hexColor;
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.28, 18, 28), makeMat(torsoCol));
   torso.position.y = 0.64;
   charBodyGroup.add(torso);
 
-  // 白色圓領巾
-  const collar = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.045, 12, 24), makeMat(0xffffff));
+  // 白色圓領巾 / 圍兜兜
+  const collar = new THREE.Mesh(
+    new THREE.TorusGeometry(0.21, 0.045, 12, 24),
+    makeMat(isAtubo ? 0xfef3c7 : 0xffffff)
+  );
   collar.rotation.x = Math.PI / 2;
   collar.position.y = 0.86;
   charBodyGroup.add(collar);
 
-  // 背後立體探險小書包
-  const backpack = new THREE.Mesh(new THREE.SphereGeometry(0.22, 20, 20), makeMat(0xfef08a));
+  if (isJinbeibei) {
+    // 金貝貝胸前白色嬰兒圍兜兜與金星徽章
+    const bib = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), makeMat(0xffffff));
+    bib.scale.set(1.05, 0.85, 0.35);
+    bib.position.set(0, 0.74, 0.23);
+    const bibStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.065, 0), makeMat(0xfacc15));
+    bibStar.position.set(0, 0.74, 0.3);
+    charBodyGroup.add(bib, bibStar);
+  } else if (isAtubo) {
+    // 阿土伯腰間紅色招財腰帶與金釦
+    const belt = new THREE.Mesh(new THREE.TorusGeometry(0.265, 0.038, 10, 24), makeMat(0xdc2626));
+    belt.rotation.x = Math.PI / 2;
+    belt.position.y = 0.56;
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.09, 0.06), makeMat(0xfacc15));
+    buckle.position.set(0, 0.56, 0.27);
+    charBodyGroup.add(belt, buckle);
+  }
+
+  // 背後立體探險小書包（阿土伯背著豐收黃金米袋、金貝貝背著粉嫩天使小背包）
+  const backpack = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 20, 20),
+    makeMat(isAtubo ? 0xf59e0b : isJinbeibei ? 0xfda4af : 0xfef08a)
+  );
   backpack.scale.set(0.95, 1.1, 0.65);
   backpack.position.set(0, 0.64, -0.23);
   const packPocket = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), makeMat(0xffffff));
@@ -4400,9 +4547,9 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   packPocket.position.set(0, 0.58, -0.32);
   charBodyGroup.add(backpack, packPocket);
 
-  // 3. 擬人化雙臂與粉嫩小圓手（左手拿小課本，右手揮手打招呼）
-  const skinMat = makeMat(0xffe5d4);
-  const sleeveMat = makeMat(hexColor);
+  // 3. 擬人化雙臂與粉嫩小圓手（阿土伯手捧金元寶，金貝貝手拿小奶瓶，學伴拿課本）
+  const skinMat = makeMat(isAtubo ? 0xfcd34d : 0xffe5d4);
+  const sleeveMat = makeMat(isAtubo ? 0xfef3c7 : torsoCol);
 
   const armL = new THREE.Group();
   armL.position.set(-0.32, 0.78, 0);
@@ -4410,11 +4557,33 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   upperArmL.position.y = -0.1;
   const handL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 14, 14), skinMat);
   handL.position.y = -0.23;
-  // 左手拿著迷你數位寶典小書
-  const miniBook = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.05), makeMat(0x38bdf8));
-  miniBook.position.set(-0.04, -0.24, 0.1);
-  miniBook.rotation.set(0.4, 0.3, 0.2);
-  armL.add(upperArmL, handL, miniBook);
+
+  if (isAtubo) {
+    // 阿土伯左手捧著大富翁閃亮「金元寶」
+    const goldMat = makeMat(0xfacc15, { roughness: 0.2, metalness: 0.65 });
+    const ingot = new THREE.Mesh(new THREE.OctahedronGeometry(0.13, 0), goldMat);
+    ingot.scale.set(1.4, 0.75, 0.9);
+    ingot.position.set(-0.02, -0.24, 0.12);
+    armL.add(upperArmL, handL, ingot);
+  } else if (isJinbeibei) {
+    // 金貝貝左手拿著「寶寶牛奶瓶」
+    const bottleGroup = new THREE.Group();
+    const bottleBody = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.18, 14), makeMat(0xffffff));
+    const bottleRing = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.035, 14), makeMat(0xf43f5e));
+    bottleRing.position.y = 0.09;
+    const bottleTip = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 12), makeMat(0xfbbf24));
+    bottleTip.position.y = 0.13;
+    bottleGroup.add(bottleBody, bottleRing, bottleTip);
+    bottleGroup.position.set(-0.02, -0.24, 0.11);
+    bottleGroup.rotation.set(0.45, 0.2, -0.2);
+    armL.add(upperArmL, handL, bottleGroup);
+  } else {
+    // 左手拿著迷你數位寶典小書
+    const miniBook = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.05), makeMat(0x38bdf8));
+    miniBook.position.set(-0.04, -0.24, 0.1);
+    miniBook.rotation.set(0.4, 0.3, 0.2);
+    armL.add(upperArmL, handL, miniBook);
+  }
   armL.rotation.z = 0.32;
 
   const armR = new THREE.Group();
@@ -4427,7 +4596,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   armR.rotation.z = -0.45;
   charBodyGroup.add(armL, armR);
 
-  // 4. Q版擬人化頭部（含粉嫩臉龐、水汪汪大眼、眼神高光、腮紅、微笑與動物連帽耳飾）
+  // 4. Q版擬人化頭部（含粉嫩臉龐、水汪汪大眼、眼神高光、腮紅、微笑與角色專屬頭飾）
   const headGroup = new THREE.Group();
   headGroup.position.y = 1.22;
 
@@ -4435,15 +4604,20 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   const face = new THREE.Mesh(new THREE.SphereGeometry(0.35, 28, 28), skinMat);
   headGroup.add(face);
 
-  // 動物連帽頭套後腦勺包覆
-  const hoodBack = new THREE.Mesh(new THREE.SphereGeometry(0.375, 26, 26), makeMat(hexColor));
-  hoodBack.position.set(0, 0.04, -0.05);
-  headGroup.add(hoodBack);
+  // 後腦勺包覆（阿土伯為白髮髻、金貝貝為粉嫩嬰兒頭、其餘為動物連帽頭套）
+  if (!isJinbeibei) {
+    const hoodBack = new THREE.Mesh(
+      new THREE.SphereGeometry(0.37, 26, 26),
+      makeMat(isAtubo ? 0xf8fafc : hexColor)
+    );
+    hoodBack.position.set(0, 0.04, -0.05);
+    headGroup.add(hoodBack);
+  }
 
   // 水汪汪大眼睛 + 白色閃亮眼神光
   const eyeMat = makeMat(0x231924);
   const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.052, 14, 14), eyeMat);
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(isJinbeibei ? 0.062 : 0.052, 14, 14), eyeMat);
   eyeL.scale.set(0.9, 1.15, 0.6);
   eyeL.position.set(-0.12, 0.02, 0.31);
   const eyeR = eyeL.clone();
@@ -4472,11 +4646,75 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
 
   headGroup.add(eyeL, eyeR, sparkL, sparkR, cheekL, cheekR, smile);
 
-  // 5. 依學伴代表動物頭像 (avatarEmoji) 加上立體擬人化獸耳／頭飾
+  // 5. 依學伴代表頭像 (avatarEmoji) 加上立體《大富翁》阿土伯、金貝貝或擬人化獸耳頭飾
   const innerPinkMat = makeMat(0xfda4af);
   const earMainMat = makeMat(hexColor);
 
-  if (avatarEmoji === "🐰") {
+  if (isAtubo) {
+    // 《大富翁》阿土伯專屬 3D 造型：傳統竹編寬簷斗笠 + 濃密白眉 + 圓紅鼻 + 招牌翹八字大白鬍
+    const bambooMat = makeMat(0xf59e0b, { roughness: 0.55 });
+    const rimMat = makeMat(0xd97706, { roughness: 0.6 });
+    const whiteHairMat = makeMat(0xffffff, { roughness: 0.4 });
+
+    // 竹編斗笠錐頂與外圈編織環
+    const hatCone = new THREE.Mesh(new THREE.ConeGeometry(0.58, 0.28, 28), bambooMat);
+    hatCone.position.set(0, 0.36, 0);
+    const hatRim = new THREE.Mesh(new THREE.TorusGeometry(0.57, 0.032, 10, 28), rimMat);
+    hatRim.rotation.x = Math.PI / 2;
+    hatRim.position.set(0, 0.22, 0);
+
+    // 濃密白眉毛
+    const browL = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.1, 8, 12), whiteHairMat);
+    browL.position.set(-0.13, 0.13, 0.33);
+    browL.rotation.z = Math.PI / 2 - 0.2;
+    const browR = browL.clone();
+    browR.position.x = 0.13;
+    browR.rotation.z = Math.PI / 2 + 0.2;
+
+    // 慈祥紅潤圓鼻頭
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.048, 14, 14), makeMat(0xf97316));
+    nose.position.set(0, -0.01, 0.36);
+
+    // 招牌蓬鬆八字大白鬍子（左右對稱上翹）
+    const stacheL = new THREE.Mesh(new THREE.CapsuleGeometry(0.042, 0.14, 10, 14), whiteHairMat);
+    stacheL.position.set(-0.09, -0.06, 0.35);
+    stacheL.rotation.z = Math.PI / 2 + 0.28;
+    const stacheR = stacheL.clone();
+    stacheR.position.x = 0.09;
+    stacheR.rotation.z = Math.PI / 2 - 0.28;
+
+    smile.position.y = -0.11;
+    headGroup.add(hatCone, hatRim, browL, browR, nose, stacheL, stacheR);
+  } else if (isJinbeibei) {
+    // 《大富翁》金貝貝專屬 3D 造型：招牌粉紅奶嘴 + 頭頂 Q彈金色小捲毛 + 圓潤嬰兒小耳
+    smile.visible = false; // 嘴巴叼著可愛粉紅奶嘴
+
+    const pacShield = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 16), makeMat(0xf43f5e));
+    pacShield.scale.set(1.25, 0.95, 0.55);
+    pacShield.position.set(0, -0.07, 0.34);
+    const pacKnob = new THREE.Mesh(new THREE.SphereGeometry(0.038, 12, 12), makeMat(0xffffff));
+    pacKnob.position.set(0, -0.07, 0.375);
+    const pacRing = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.015, 10, 18), makeMat(0xfef08a));
+    pacRing.position.set(0, -0.1, 0.39);
+    pacRing.rotation.x = 0.35;
+
+    // 頭頂 Q彈金色小捲毛
+    const curlMat = makeMat(0xd97706);
+    const curlMain = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.032, 10, 20, Math.PI * 1.45), curlMat);
+    curlMain.position.set(0, 0.39, 0.05);
+    curlMain.rotation.z = -0.3;
+    const curlTip = new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.09, 8, 12), curlMat);
+    curlTip.position.set(0.05, 0.36, 0.1);
+    curlTip.rotation.z = -0.45;
+
+    // 嬰兒粉嫩小圓耳
+    const babyEarL = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 14), skinMat);
+    babyEarL.position.set(-0.34, 0, 0.02);
+    const babyEarR = babyEarL.clone();
+    babyEarR.position.x = 0.34;
+
+    headGroup.add(pacShield, pacKnob, pacRing, curlMain, curlTip, babyEarL, babyEarR);
+  } else if (avatarEmoji === "🐰") {
     // 長長立體兔耳朵（一隻微彎）
     const earL = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.28, 12, 18), makeMat(0xffffff));
     earL.position.set(-0.15, 0.44, -0.02);
@@ -4585,8 +4823,15 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
 function triggerPeerGreeting(ent) {
   if (!ent) return;
   playSfx("pop");
-  ent.greetTimer = 4.2;
-  const quip = PEER_GREETINGS[Math.floor(Math.random() * PEER_GREETINGS.length)];
+  ent.greetTimer = 4.6;
+  const av = ent.peerData && ent.peerData.avatar;
+  const pool =
+    av === "👨‍🌾"
+      ? ATUBO_GREETINGS
+      : av === "👶"
+        ? JINBEIBEI_GREETINGS
+        : PEER_GREETINGS;
+  const quip = pool[Math.floor(Math.random() * pool.length)];
   ent.greetText = quip;
   renderPeerTagContent(ent);
 }
@@ -5002,11 +5247,24 @@ setInterval(() => {
   let nextCh = Math.floor(Math.random() * 15) + 1;
   if (nextCh === ai.chId) nextCh = (nextCh % 15) + 1;
   const chObj = chapters[nextCh] || { title: `第 ${nextCh} 章` };
-  const acts = [
-    { act: `研讀 Ch.${nextCh} 重點`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》研讀重點寶箱 📖` },
-    { act: `挑戰 Ch.${nextCh} 測驗`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》答對題目獲得 ⭐！` },
-    { act: `收集 Ch.${nextCh} 圖鑑`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")} 收集了魔法小辭典卡牌 🃏` }
-  ];
+  let acts;
+  if (ai.avatar === "👨‍🌾") {
+    acts = [
+      { act: `貪財貪財！巡視 Ch.${nextCh}`, msg: `開著發財車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》：「貪財、貪財啦！這塊地段好！」💰` },
+      { act: `挑戰 Ch.${nextCh} 測驗`, msg: `駕車抵達 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》奪得 ⭐：「無禁無忌，吃百二！」🌾` }
+    ];
+  } else if (ai.avatar === "👶") {
+    acts = [
+      { act: `哇咿呀🍼！探索 Ch.${nextCh}`, msg: `搭著粉紅嬰兒敞篷車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》：「哇～咿呀🍼！」` },
+      { act: `收集 Ch.${nextCh} 圖鑑`, msg: `駕車來到 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》搖奶瓶拿卡牌：「咿呀～咔咔✨！」` }
+    ];
+  } else {
+    acts = [
+      { act: `研讀 Ch.${nextCh} 重點`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》研讀重點寶箱 📖` },
+      { act: `挑戰 Ch.${nextCh} 測驗`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》答對題目獲得 ⭐！` },
+      { act: `收集 Ch.${nextCh} 圖鑑`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")} 收集了魔法小辭典卡牌 🃏` }
+    ];
+  }
   const pick = acts[Math.floor(Math.random() * acts.length)];
   ai.chId = nextCh;
   ai.action = pick.act;
@@ -5032,7 +5290,7 @@ function openNameProfileModal(isInitial = false) {
     <div class="welcome-profile-box">
       <div class="welcome-badge">${isInitial ? "🎉 歡迎來到數位科技大冒險" : "✏️ 勇者名牌設定"}</div>
       <h2 class="welcome-title">${isInitial ? "先替自己取個響亮的勇者名稱吧！" : "修改你的島上暱稱與代表頭像"}</h2>
-      <p class="welcome-sub">你的名字與代表動物會同步顯示在島上，跟其他在線學伴一起闖關奪星！</p>
+      <p class="welcome-sub">你的名字與代表角色會同步顯示在城市中，還可化身為經典《大富翁》阿土伯或金貝貝喔！</p>
 
       <div class="welcome-section">
         <label class="welcome-label" for="custom-name-input">🏷️ 你的勇者暱稱（1～12 字）</label>
@@ -5042,15 +5300,19 @@ function openNameProfileModal(isInitial = false) {
             type="text"
             maxlength="12"
             autocomplete="off"
-            placeholder="例如：資一甲小桃、電神阿哲…"
+            placeholder="例如：阿土伯、金貝貝、電神阿哲…"
             value="${escapeHTML(initialNameVal)}"
           />
           <button type="button" id="btn-random-name" class="candy-btn yellow" title="隨機產生可愛暱稱">🎲 隨機取名</button>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button type="button" class="candy-btn yellow btn-quick-richman" data-name="阿土伯" data-av="👨‍🌾" style="font-size:12.5px;padding:5px 12px;">👨‍🌾 一鍵化身「阿土伯」</button>
+          <button type="button" class="candy-btn pink btn-quick-richman" data-name="金貝貝" data-av="👶" style="font-size:12.5px;padding:5px 12px;">👶 一鍵化身「金貝貝」</button>
+        </div>
       </div>
 
       <div class="welcome-section">
-        <label class="welcome-label">🐾 選擇你的代表小動物頭像</label>
+        <label class="welcome-label">🌟 選擇你的代表角色頭像（含《大富翁》阿土伯 👨‍🌾、金貝貝 👶）</label>
         <div class="avatar-picker-grid" id="avatar-picker-grid">
           ${AVATAR_CHOICES.map(
             av => `<button type="button" class="avatar-pick-btn ${av === pickedAvatar ? "selected" : ""}" data-av="${escapeHTML(av)}">${escapeHTML(av)}</button>`
@@ -5084,6 +5346,17 @@ function openNameProfileModal(isInitial = false) {
       playSfx("pop");
       pickedAvatar = btn.dataset.av;
       modalBox.querySelectorAll(".avatar-pick-btn").forEach(b => b.classList.toggle("selected", b === btn));
+    });
+  });
+
+  modalBox.querySelectorAll(".btn-quick-richman").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playSfx("pop");
+      nameInput.value = btn.dataset.name || "";
+      pickedAvatar = btn.dataset.av || "👨‍🌾";
+      modalBox.querySelectorAll(".avatar-pick-btn").forEach(b =>
+        b.classList.toggle("selected", b.dataset.av === pickedAvatar)
+      );
     });
   });
 
