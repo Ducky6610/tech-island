@@ -2657,3 +2657,532 @@ button, input {
     padding: 8px;
   }
 }
+
+/* =====================================================
+   Ch.14 OSI 七層架構互動說明動畫實驗室 (OSI 7 Layers Lab)
+   ===================================================== */
+.osi-cta-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  margin-bottom: 12px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 50%, #fdf2f8 100%);
+  border: 2px solid #93c5fd;
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.14);
+}
+
+.osi-cta-text {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #1e3a8a;
+  line-height: 1.45;
+}
+
+.osi-cta-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #db2777);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(219, 39, 119, 0.28);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.osi-cta-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 16px rgba(219, 39, 119, 0.38);
+}
+
+.tab-btn.osi-special-tab {
+  background: linear-gradient(135deg, #dbeafe, #fce7f3);
+  border-color: #60a5fa;
+  color: #1e40af;
+}
+
+.tab-btn.osi-special-tab.active {
+  background: linear-gradient(135deg, #2563eb, #db2777);
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.osi-lab-root {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.osi-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 6px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+}
+
+.osi-subtab-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.osi-subtab-btn:hover {
+  color: #1e293b;
+  background: #ffffff;
+}
+
+.osi-subtab-btn.active {
+  background: #ffffff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.12);
+}
+
+/* 播放控制列 */
+.osi-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #eff6ff, #fdf2f8);
+  border: 1.5px solid #bfdbfe;
+}
+
+.osi-ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.osi-ctrl-btn {
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1.5px solid #93c5fd;
+  background: #ffffff;
+  color: #1e3a8a;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.14s;
+}
+
+.osi-ctrl-btn:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.osi-ctrl-btn.primary {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  border-color: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+}
+
+.osi-ctrl-btn.primary.playing {
+  background: linear-gradient(135deg, #ea580c, #db2777);
+  border-color: #c2410c;
+}
+
+.osi-step-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #334155;
+}
+
+.osi-progress-track {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.osi-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #a855f7, #ec4899);
+  transition: width 0.25s ease;
+}
+
+/* 雙塔七層電梯與中央封包透視舞台 */
+.osi-stage-grid {
+  display: grid;
+  grid-template-columns: 128px 1fr 128px;
+  gap: 10px;
+  align-items: stretch;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.osi-tower {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.osi-tower-title {
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 900;
+  padding: 5px 6px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  margin-bottom: 2px;
+}
+
+.osi-layer-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+}
+
+.osi-layer-cell:hover {
+  transform: scale(1.03);
+  border-color: var(--l-color, #3b82f6);
+}
+
+.osi-layer-cell .l-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--l-color, #3b82f6);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+.osi-layer-cell .l-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.osi-layer-cell.passed {
+  background: color-mix(in srgb, var(--l-color, #3b82f6) 12%, #ffffff);
+  border-color: color-mix(in srgb, var(--l-color, #3b82f6) 45%, #e2e8f0);
+}
+
+.osi-layer-cell.active {
+  background: var(--l-color, #3b82f6);
+  border-color: var(--l-color, #3b82f6);
+  color: #ffffff;
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--l-color, #3b82f6) 45%, transparent);
+  z-index: 2;
+}
+
+.osi-layer-cell.active .l-num {
+  background: #ffffff;
+  color: var(--l-color, #3b82f6);
+}
+
+.osi-active-dot {
+  font-size: 13px;
+  animation: osiPulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes osiPulse {
+  from { transform: scale(0.9); }
+  to { transform: scale(1.22); }
+}
+
+/* 中央封包透視舞台 */
+.osi-center-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fdf2f8 100%);
+  border: 1.5px dashed #cbd5e1;
+}
+
+.osi-phase-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.osi-phase-badge {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.osi-pdu-badge {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #fef3c7;
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+}
+
+.osi-step-headline {
+  font-size: 15.5px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.osi-step-desc {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.65;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+/* 俄羅斯娃娃封包組裝視圖 */
+.osi-packet-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #0f172a;
+  color: #f8fafc;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.osi-packet-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.osi-packet-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 36px;
+}
+
+.osi-hdr-pill {
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #ffffff;
+  background: var(--hdr-bg, #3b82f6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.osi-hdr-pill.just-added {
+  animation: hdrPopIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  outline: 2px solid #fde047;
+}
+
+.osi-hdr-pill.stripping {
+  animation: hdrStripOut 0.7s ease-in-out infinite alternate;
+  outline: 2px dashed #fde047;
+  opacity: 0.78;
+}
+
+@keyframes hdrPopIn {
+  0% { transform: scale(0.5) translateY(-8px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes hdrStripOut {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-4px) scale(0.95); }
+}
+
+.osi-data-pill {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #ffffff;
+  color: #0f172a;
+  border: 2px solid #f472b6;
+}
+
+.osi-bits-stream {
+  width: 100%;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 7px 10px;
+  border-radius: 10px;
+  text-align: center;
+  overflow: hidden;
+  animation: bitsGlow 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes bitsGlow {
+  from { color: #38bdf8; box-shadow: 0 0 6px rgba(56, 189, 248, 0.2); }
+  to { color: #fde047; box-shadow: 0 0 14px rgba(250, 204, 21, 0.45); }
+}
+
+/* 底部實體網路傳輸路徑指示 */
+.osi-wire-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.osi-wire-bar.active {
+  background: linear-gradient(90deg, #fef3c7, #dbeafe, #dcfce7);
+  border-color: #3b82f6;
+  color: #0f172a;
+}
+
+/* 當層詳細資訊卡片 */
+.osi-layer-detail-card {
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 2px solid var(--detail-color, #3b82f6);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.osi-detail-item {
+  background: #f8fafc;
+  padding: 9px 12px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.osi-detail-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #64748b;
+  margin-bottom: 3px;
+}
+
+.osi-detail-val {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.45;
+}
+
+/* 記憶口訣卡片 */
+.osi-mnemonic-box {
+  padding: 12px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fef3c7, #fce7f3);
+  border: 1.5px solid #f9a8d4;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #831843;
+  line-height: 1.65;
+}
+
+/* 對照表模式 (OSI vs DoD vs 設備) */
+.osi-compare-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.osi-cmp-row {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1.35fr 1.2fr;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.osi-cmp-row.head {
+  background: #1e293b;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 12.5px;
+}
+
+@media (max-width: 680px) {
+  .osi-stage-grid {
+    grid-template-columns: 1fr;
+  }
+  .osi-tower {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .osi-layer-cell {
+    flex: 1 1 calc(25% - 6px);
+  }
+  .osi-cmp-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

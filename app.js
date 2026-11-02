@@ -2331,6 +2331,7 @@ function closePanel() {
   selectedId = null;
   isFollowingSelfDrive = false;
   pendingPanelChId = null;
+  stopOsiAnimTimer();
   panelEl.classList.remove("fullscreen");
   panelEl.classList.add("hidden");
   updateIslandHighlights();
@@ -2382,6 +2383,780 @@ function updateIslandBadges() {
   });
 }
 
+// ==========================================
+// 9.5 Ch.14 專屬「OSI 七層架構封裝／解封裝與 DoD 對照」互動說明動畫實驗室
+// ==========================================
+const OSI_LAYERS_INFO = {
+  7: {
+    layer: 7,
+    name: "應用層",
+    en: "Application",
+    mnemonic: "應",
+    groupTag: "上 3 層：軟體應用層級",
+    color: "#ec4899",
+    pdu: "訊息／資料 (Data)",
+    hdrLabel: "L7 應用標頭",
+    protocols: "HTTP、FTP、SMTP、POP3、IMAP、Telnet、DHCP、DNS",
+    devices: "應用程式、閘道器 (Gateway)",
+    dodLayer: "DoD 應用層 (Application)",
+    keyFunc: "提供網路服務的使用者介面（如瀏覽網頁、收發電子郵件、檔案傳輸），讓使用者直接存取網路資源。"
+  },
+  6: {
+    layer: 6,
+    name: "表達層",
+    en: "Presentation",
+    mnemonic: "達",
+    groupTag: "上 3 層：軟體應用層級",
+    color: "#a855f7",
+    pdu: "資料 (Data)",
+    hdrLabel: "L6 格式/加密標頭",
+    protocols: "ASCII / BIG-5 / UTF-8、SSL/TLS 加密、JPEG/ZIP 壓縮",
+    devices: "閘道器 (Gateway)",
+    dodLayer: "DoD 應用層 (Application)",
+    keyFunc: "負責資料「格式轉換」（如 ASCII 與 BIG-5）、「加密與解密」以及「壓縮與解壓縮」。"
+  },
+  5: {
+    layer: 5,
+    name: "會議層",
+    en: "Session",
+    mnemonic: "會",
+    groupTag: "上 3 層：軟體應用層級",
+    color: "#6366f1",
+    pdu: "資料 (Data)",
+    hdrLabel: "L5 會議標頭",
+    protocols: "Session 連線管理、全雙工／半雙工協商",
+    devices: "閘道器 (Gateway)",
+    dodLayer: "DoD 應用層 (Application)",
+    keyFunc: "協調及建立傳輸雙方的連線（Session），並建立傳輸規則（如協議使用全雙工或半雙工模式）。"
+  },
+  4: {
+    layer: 4,
+    name: "傳輸層",
+    en: "Transport",
+    mnemonic: "輸",
+    groupTag: "下 4 層：資料傳輸層級",
+    color: "#3b82f6",
+    pdu: "區段 (Segment) ⭐必考",
+    hdrLabel: "L4 TCP/UDP 標頭 (Port+編號)",
+    protocols: "TCP（連接導向/確認送達）、UDP（無連接/快速不重傳）",
+    devices: "閘道器 (Gateway)、防火牆",
+    dodLayer: "DoD 傳輸層／主機對主機層",
+    keyFunc: "將訊息切割成「區段（Segment）」並編號以便重組；負責「流量控制」與「偵錯處理（遺失要求重送）」。"
+  },
+  3: {
+    layer: 3,
+    name: "網路層",
+    en: "Network",
+    mnemonic: "路",
+    groupTag: "下 4 層：資料傳輸層級",
+    color: "#10b981",
+    pdu: "封包 (Packet) ⭐必考",
+    hdrLabel: "L3 IP 標頭 (來源/目的 IP)",
+    protocols: "IP（路徑選擇）、ICMP、ARP（IP 轉實體位址）",
+    devices: "路由器 (Router)、IP 分享器 ⭐必考",
+    dodLayer: "DoD 網路層／網際網路層",
+    keyFunc: "負責「邏輯定址」（加入傳送端與接收端 IP 位址，產生封包 Packet）與「路徑選擇（Routing，選擇最佳傳輸路徑）」。"
+  },
+  2: {
+    layer: 2,
+    name: "資料連結層",
+    en: "Data Link",
+    mnemonic: "結",
+    groupTag: "下 4 層：資料傳輸層級",
+    color: "#f59e0b",
+    pdu: "訊框 (Frame) ⭐必考",
+    hdrLabel: "L2 MAC 標頭",
+    trailerLabel: "L2 FCS 標尾 (錯誤檢查碼)",
+    protocols: "IEEE 802.3 (乙太網路)、IEEE 802.11 (Wi-Fi)",
+    devices: "網路卡 (NIC)、交換器 (Switch)、橋接器 (Bridge) ⭐必考",
+    dodLayer: "DoD 連結層／網路存取層",
+    keyFunc: "負責「實體定址」（加入 MAC 位址，產生訊框 Frame），並在尾端加上「標尾（Trailer，錯誤檢查碼）」進行偵錯處理。"
+  },
+  1: {
+    layer: 1,
+    name: "實體層",
+    en: "Physical",
+    mnemonic: "實",
+    groupTag: "下 4 層：資料傳輸層級",
+    color: "#ef4444",
+    pdu: "位元 (Bits: 0 與 1)",
+    hdrLabel: "01011010 電子/光/無線訊號",
+    protocols: "雙絞線、光纖、同軸電纜、無線電波、Li-Fi",
+    devices: "中繼器 (Repeater)、集線器 (Hub)、數據機 (Modem) ⭐必考",
+    dodLayer: "DoD 連結層／網路存取層",
+    keyFunc: "將數位資料（0 與 1）轉換成傳輸媒介可傳遞的「電子訊號、光訊號或無線電波」並傳送出去，最接近網路硬體。"
+  }
+};
+
+const OSI_ANIM_STEPS = [
+  {
+    step: 0,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 7,
+    title: "Step 1｜傳送端第 7 層【應用層】：產生原始訊息",
+    desc: "使用者在瀏覽器或郵件軟體發出訊息「Hello OSI!」，應用層提供網路服務介面，產生原始應用資料（Data）並加上 L7 應用標頭。",
+    headers: [7],
+    justAdded: 7,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 1,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 6,
+    title: "Step 2｜傳送端第 6 層【表達層】：格式轉換、加密與壓縮",
+    desc: "表達層將資料轉換為共通編碼格式（如 ASCII / UTF-8）、進行壓縮與 SSL/TLS 加密，並在前端加上 L6 表達層標頭（Header）。",
+    headers: [6, 7],
+    justAdded: 6,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 2,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 5,
+    title: "Step 3｜傳送端第 5 層【會議層】：建立連線與傳輸規則",
+    desc: "會議層協調並建立收送雙方的連線（Session），決定採用全雙工或半雙工模式，並在前端加上 L5 會議層標頭。",
+    headers: [5, 6, 7],
+    justAdded: 5,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 3,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 4,
+    title: "Step 4｜傳送端第 4 層【傳輸層】：切割為「區段 (Segment)」⭐",
+    desc: "傳輸層將訊息切割成多個「區段（Segment）」並加上序號（以便接收端重組）與 Port 號（TCP/UDP 標頭），負責流量控制與遺失重送！",
+    headers: [4, 5, 6, 7],
+    justAdded: 4,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 4,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 3,
+    title: "Step 5｜傳送端第 3 層【網路層】：加上 IP 產生「封包 (Packet)」⭐",
+    desc: "網路層進行「邏輯定址」，在區段前加上傳送端與接收端的 IP 位址標頭，封裝成「封包（Packet）」，並由路由器選擇最佳傳輸路徑！",
+    headers: [3, 4, 5, 6, 7],
+    justAdded: 3,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 5,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 2,
+    title: "Step 6｜傳送端第 2 層【資料連結層】：產生「訊框 (Frame)」＋標尾⭐",
+    desc: "資料連結層進行「實體定址」，在前端加上傳送端與接收端的 MAC 位址標頭（Header），並在尾端加上錯誤檢查碼「標尾（Trailer）」產生「訊框（Frame）」！",
+    headers: [2, 3, 4, 5, 6, 7],
+    justAdded: 2,
+    hasTrailer: true,
+    justAddedTrailer: true,
+    isBits: false
+  },
+  {
+    step: 6,
+    phase: "📥 傳送端封裝 (Encapsulation · 由上往下 7→1)",
+    side: "sender",
+    layer: 1,
+    title: "Step 7｜傳送端第 1 層【實體層】：轉換為 0 與 1 電子／光訊號",
+    desc: "實體層將整份訊框（Frame）轉換成實體傳輸媒介可傳遞的「0 與 1 電子訊號、光訊號或無線電波」，送上網路線出發！",
+    headers: [2, 3, 4, 5, 6, 7],
+    hasTrailer: true,
+    isBits: true
+  },
+  {
+    step: 7,
+    phase: "⚡ 實體網路與中繼節點傳輸 (L1 集線器 ➔ L2 交換器 ➔ L3 路由器)",
+    side: "wire",
+    layer: 3,
+    title: "Step 8｜🌐 跨越網路傳輸：集線器(L1) ➔ 交換器(L2) ➔ 路由器(L3)",
+    desc: "0101 訊號經由【L1 中繼器/集線器】放大訊號、【L2 交換器】依 MAC 位址轉發、【L3 路由器】依 IP 位址選擇最佳路徑，跨網送達接收端電腦！",
+    headers: [2, 3, 4, 5, 6, 7],
+    hasTrailer: true,
+    isBits: true
+  },
+  {
+    step: 8,
+    phase: "📤 接收端解封裝 (Decapsulation · 由下往上 1→7)",
+    side: "receiver",
+    layer: 1,
+    title: "Step 9｜接收端第 1 層【實體層】：接收實體訊號並還原為位元流",
+    desc: "接收端由最底層向上傳送：實體層自網路線或無線電波收到實體訊號，還原成 0 與 1 數位訊框，往上送交第 2 層資料連結層。",
+    headers: [2, 3, 4, 5, 6, 7],
+    hasTrailer: true,
+    isBits: true
+  },
+  {
+    step: 9,
+    phase: "📤 接收端解封裝 (Decapsulation · 由下往上 1→7)",
+    side: "receiver",
+    layer: 2,
+    title: "Step 10｜接收端第 2 層【資料連結層】：驗證標尾偵錯，拆掉 L2 標頭與標尾",
+    desc: "資料連結層檢查尾端的「FCS 標尾（Trailer）」確認傳輸無誤、核對 MAC 位址後，拆掉 L2 標頭與標尾，取出內層「封包（Packet）」往上送！",
+    headers: [2, 3, 4, 5, 6, 7],
+    stripping: 2,
+    hasTrailer: true,
+    strippingTrailer: true,
+    isBits: false
+  },
+  {
+    step: 10,
+    phase: "📤 接收端解封裝 (Decapsulation · 由下往上 1→7)",
+    side: "receiver",
+    layer: 3,
+    title: "Step 11｜接收端第 3 層【網路層】：確認目的 IP，拆掉 L3 標頭",
+    desc: "網路層檢查目的 IP 位址確認是寄給本機後，拆掉 L3 IP 標頭，取出內層的「區段（Segment）」往上送交第 4 層傳輸層！",
+    headers: [3, 4, 5, 6, 7],
+    stripping: 3,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 11,
+    phase: "📤 接收端解封裝 (Decapsulation · 由下往上 1→7)",
+    side: "receiver",
+    layer: 4,
+    title: "Step 12｜接收端第 4 層【傳輸層】：依編號重組「區段 (Segment)」",
+    desc: "傳輸層依據 L4 標頭的編號將各個「區段（Segment）」重組為完整訊息（若發現遺失則要求傳送端重送），並拆掉 L4 標頭往上送！",
+    headers: [4, 5, 6, 7],
+    stripping: 4,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 12,
+    phase: "📤 接收端解封裝 (Decapsulation · 由下往上 1→7)",
+    side: "receiver",
+    layer: 5,
+    title: "Step 13｜接收端第 5 層【會議層】：確認會議連線，拆掉 L5 標頭",
+    desc: "會議層確認傳輸雙方的會議連線（Session）狀態完成，拆掉 L5 會議標頭，將資料往上送交第 6 層表達層。",
+    headers: [5, 6, 7],
+    stripping: 5,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 13,
+    phase: "📤 接收端解封裝 (Decapsulation · 由下往上 1→7)",
+    side: "receiver",
+    layer: 6,
+    title: "Step 14｜接收端第 6 層【表達層】：解密、解壓縮與編碼格式轉換",
+    desc: "表達層將收到的資料進行 SSL/TLS 解密、解壓縮，並轉換為本機應用程式可讀的文字編碼格式，拆掉 L6 表達標頭！",
+    headers: [6, 7],
+    stripping: 6,
+    hasTrailer: false,
+    isBits: false
+  },
+  {
+    step: 14,
+    phase: "🎉 解封裝完成！(抵達接收端應用層 L7)",
+    side: "receiver",
+    layer: 7,
+    title: "Step 15｜接收端第 7 層【應用層】：拆掉最後標頭，完美呈現原始資料！",
+    desc: "應用層拆掉最後一層 L7 標頭，恢復成最原始的「Hello OSI!」訊息並顯示在接收端使用者的軟體畫面上，完成一次完整的 OSI 七層通訊！",
+    headers: [],
+    hasTrailer: false,
+    isBits: false
+  }
+];
+
+const OSI_DRILL_QUESTIONS = [
+  {
+    q: "1. 在傳送端由上往下封裝時，哪一層會將訊息切割成「區段（Segment）」並編號，且負責流量控制與遺失重送？",
+    opts: ["第 4 層：傳輸層 (Transport)", "第 3 層：網路層 (Network)", "第 2 層：資料連結層 (Data Link)", "第 5 層：會議層 (Session)"],
+    ans: 0,
+    exp: "傳輸層（第 4 層，如 TCP）將訊息切割成區段（Segment）並編號以便重組，負責流量控制與偵錯重送。"
+  },
+  {
+    q: "2. 哪一層在封裝時，除了在前端加上 MAC 位址標頭（Header），還會在尾端加上錯誤檢查碼「標尾（Trailer）」以產生「訊框（Frame）」？",
+    opts: ["第 1 層：實體層", "第 2 層：資料連結層", "第 3 層：網路層", "第 4 層：傳輸層"],
+    ans: 1,
+    exp: "資料連結層（第 2 層）是 OSI 七層中唯一同時加上「標頭（Header）」與「標尾（Trailer，錯誤檢查碼）」的一層，資料單位為訊框（Frame）。"
+  },
+  {
+    q: "3. 負責加入 IP 位址（邏輯定址）、產生「封包（Packet）」，並決定最佳傳輸路徑（路由器 Router 運作的層級）是哪一層？",
+    opts: ["第 2 層：資料連結層", "第 3 層：網路層", "第 4 層：傳輸層", "第 7 層：應用層"],
+    ans: 1,
+    exp: "網路層（第 3 層）負責邏輯定址（IP 位址）與路徑選擇（Routing），路由器與 IP 分享器皆屬於網路層設備。"
+  },
+  {
+    q: "4. 下列「網路硬體設備 ⟷ OSI 層級」的對應，何者完全正確？",
+    opts: [
+      "集線器(Hub)→網路層；交換器(Switch)→實體層",
+      "中繼器、集線器、數據機→第1層實體層；網卡、交換器、橋接器→第2層資料連結層；路由器→第3層網路層",
+      "路由器(Router)→第2層資料連結層；橋接器(Bridge)→第3層網路層",
+      "網路卡(NIC)→第4層傳輸層"
+    ],
+    ans: 1,
+    exp: "必背設備對應：L1 實體層（中繼器、集線器、數據機）；L2 資料連結層（網路卡、交換器、橋接器）；L3 網路層（路由器、IP 分享器）；閘道器可跨各層。"
+  },
+  {
+    q: "5. 關於資料格式轉換（如 ASCII 與 BIG-5）、加密與解密、壓縮與解壓縮，是由 OSI 的哪一層負責？",
+    opts: ["第 7 層：應用層", "第 6 層：表達層", "第 5 層：會議層", "第 4 層：傳輸層"],
+    ans: 1,
+    exp: "第 6 層表達層（Presentation Layer）負責資料的格式轉換、加密／解密、壓縮／解壓縮。"
+  },
+  {
+    q: "6. 在 TCP/IP 參照的美國國防部 DoD 四層模型中，DoD 的「應用層」合併對應了 OSI 的哪三層？",
+    opts: [
+      "應用層、表達層、會議層（第 7、6、5 層）",
+      "表達層、會議層、傳輸層（第 6、5、4 層）",
+      "網路層、資料連結層、實體層（第 3、2、1 層）",
+      "應用層、傳輸層、網路層"
+    ],
+    ans: 0,
+    exp: "DoD 應用層對應 OSI 的上 3 層（7 應用層、6 表達層、5 會議層），包含 HTTP、FTP、SMTP、POP3、IMAP、Telnet、DHCP、DNS 等協定。"
+  }
+];
+
+let osiSubTab = "encap"; // "encap" | "compare" | "drill"
+let osiStepIdx = 0;
+let osiPlaying = false;
+let osiSpeed = 1;
+let osiAnimTimer = null;
+let osiDrillIdx = 0;
+let osiDrillAnswers = {};
+let hasRewardedOsiAnim = false;
+
+function stopOsiAnimTimer() {
+  osiPlaying = false;
+  if (osiAnimTimer) {
+    clearInterval(osiAnimTimer);
+    osiAnimTimer = null;
+  }
+}
+
+function startOsiAnimTimer() {
+  stopOsiAnimTimer();
+  osiPlaying = true;
+  const intervalMs = Math.round(2100 / (osiSpeed || 1));
+  osiAnimTimer = setInterval(() => {
+    if (selectedId !== 14 || activeTab !== "osi" || osiSubTab !== "encap") {
+      stopOsiAnimTimer();
+      return;
+    }
+    if (osiStepIdx < OSI_ANIM_STEPS.length - 1) {
+      osiStepIdx++;
+      playSfx("pop");
+      if (osiStepIdx === OSI_ANIM_STEPS.length - 1 && !hasRewardedOsiAnim) {
+        hasRewardedOsiAnim = true;
+        playSfx("fanfare");
+        rewardPlayer(20, 15);
+      }
+      refreshOsiLabInPlace();
+    } else {
+      stopOsiAnimTimer();
+      refreshOsiLabInPlace();
+    }
+  }, intervalMs);
+}
+
+function renderOsiLabHTML() {
+  const stepObj = OSI_ANIM_STEPS[osiStepIdx] || OSI_ANIM_STEPS[0];
+  const curLayerInfo = OSI_LAYERS_INFO[stepObj.layer] || OSI_LAYERS_INFO[7];
+  const progressPct = Math.round(((osiStepIdx + 1) / OSI_ANIM_STEPS.length) * 100);
+
+  let subBodyHTML = "";
+  if (osiSubTab === "encap") {
+    const layersDescOrder = [7, 6, 5, 4, 3, 2, 1];
+
+    const senderTowerHTML = layersDescOrder
+      .map(lNum => {
+        const info = OSI_LAYERS_INFO[lNum];
+        const targetStep = 7 - lNum; // L7->0, L6->1, ..., L1->6
+        const isCurrent = stepObj.side === "sender" && stepObj.layer === lNum;
+        const isPassed = osiStepIdx > targetStep;
+        return `
+          <button type="button" class="osi-layer-cell ${isCurrent ? "active" : isPassed ? "passed" : ""}" style="--l-color:${info.color}" data-osi-jump="${targetStep}" title="點擊跳至傳送端第 ${lNum} 層（${info.name}）">
+            <span class="l-num">L${lNum}</span>
+            <span class="l-name">${info.name}</span>
+            ${isCurrent ? `<span class="osi-active-dot">📦</span>` : `<span style="font-size:10.5px;opacity:0.75;">${info.mnemonic}</span>`}
+          </button>
+        `;
+      })
+      .join("");
+
+    const receiverTowerHTML = layersDescOrder
+      .map(lNum => {
+        const info = OSI_LAYERS_INFO[lNum];
+        const targetStep = 7 + lNum; // L1->8, L2->9, ..., L7->14
+        const isCurrent = stepObj.side === "receiver" && stepObj.layer === lNum;
+        const isPassed = osiStepIdx > targetStep;
+        return `
+          <button type="button" class="osi-layer-cell ${isCurrent ? "active" : isPassed ? "passed" : ""}" style="--l-color:${info.color}" data-osi-jump="${targetStep}" title="點擊跳至接收端第 ${lNum} 層（${info.name}）">
+            <span class="l-num">L${lNum}</span>
+            <span class="l-name">${info.name}</span>
+            ${isCurrent ? `<span class="osi-active-dot">📬</span>` : `<span style="font-size:10.5px;opacity:0.75;">${info.mnemonic}</span>`}
+          </button>
+        `;
+      })
+      .join("");
+
+    const headerPillsHTML = stepObj.headers
+      .map(hLayer => {
+        const hInfo = OSI_LAYERS_INFO[hLayer];
+        const isJustAdded = stepObj.justAdded === hLayer;
+        const isStripping = stepObj.stripping === hLayer;
+        return `<span class="osi-hdr-pill ${isJustAdded ? "just-added" : ""} ${isStripping ? "stripping" : ""}" style="--hdr-bg:${hInfo.color}">
+          ${isStripping ? "✂️ " : ""}${hInfo.hdrLabel}
+        </span>`;
+      })
+      .join("");
+
+    const trailerPillHTML = stepObj.hasTrailer
+      ? `<span class="osi-hdr-pill ${stepObj.justAddedTrailer ? "just-added" : ""} ${stepObj.strippingTrailer ? "stripping" : ""}" style="--hdr-bg:#d97706">
+          ${stepObj.strippingTrailer ? "✂️ " : ""}🛡️ L2 FCS 標尾 (Trailer)
+        </span>`
+      : "";
+
+    subBodyHTML = `
+      <div class="osi-controls-bar">
+        <div class="osi-ctrl-group">
+          <button type="button" class="osi-ctrl-btn primary ${osiPlaying ? "playing" : ""}" id="osi-btn-play">
+            ${osiPlaying ? "⏸️ 暫停動畫" : "▶️ 自動播放說明動畫"}
+          </button>
+          <button type="button" class="osi-ctrl-btn" id="osi-btn-prev" ${osiStepIdx === 0 ? "disabled style='opacity:0.45;cursor:default'" : ""}>⏮️ 上一步</button>
+          <button type="button" class="osi-ctrl-btn" id="osi-btn-next" ${osiStepIdx === OSI_ANIM_STEPS.length - 1 ? "disabled style='opacity:0.45;cursor:default'" : ""}>⏭️ 下一步</button>
+          <button type="button" class="osi-ctrl-btn" id="osi-btn-reset" title="重頭開始播放">🔄 重播</button>
+        </div>
+        <div class="osi-step-progress">
+          <span>速度：</span>
+          <button type="button" class="osi-ctrl-btn" data-osi-speed="0.7" style="${osiSpeed === 0.7 ? "background:#dbeafe;border-color:#2563eb;" : ""}">慢速</button>
+          <button type="button" class="osi-ctrl-btn" data-osi-speed="1" style="${osiSpeed === 1 ? "background:#dbeafe;border-color:#2563eb;" : ""}">1x</button>
+          <button type="button" class="osi-ctrl-btn" data-osi-speed="1.5" style="${osiSpeed === 1.5 ? "background:#dbeafe;border-color:#2563eb;" : ""}">1.5x</button>
+          <span>步驟 ${osiStepIdx + 1} / ${OSI_ANIM_STEPS.length}</span>
+        </div>
+        <div class="osi-progress-track">
+          <div class="osi-progress-fill" style="width:${progressPct}%"></div>
+        </div>
+      </div>
+
+      <div class="osi-stage-grid">
+        <div class="osi-tower">
+          <div class="osi-tower-title">💻 傳送端<br><span style="font-size:11px;color:#2563eb;">⬇ 封裝加標頭</span></div>
+          ${senderTowerHTML}
+        </div>
+
+        <div class="osi-center-stage">
+          <div>
+            <div class="osi-phase-row">
+              <span class="osi-phase-badge">${stepObj.phase}</span>
+              <span class="osi-pdu-badge">📦 資料單位：${curLayerInfo.pdu}</span>
+            </div>
+            <div class="osi-step-headline" style="margin-top:8px;">${stepObj.title}</div>
+          </div>
+
+          <div class="osi-step-desc">${stepObj.desc}</div>
+
+          <div class="osi-packet-box">
+            <div class="osi-packet-label">
+              <span>🔬 即時封包結構透視鏡（由外而內）</span>
+              <span>${stepObj.side === "sender" ? "➕ 每往下一層加上該層 Header" : stepObj.side === "receiver" ? "✂️ 每往上一層拆掉該層 Header" : "⚡ 實體訊號傳輸中"}</span>
+            </div>
+            <div class="osi-packet-pills">
+              ${headerPillsHTML}
+              <span class="osi-data-pill">💌 原始資料 Data: "Hello OSI!"</span>
+              ${trailerPillHTML}
+            </div>
+            ${
+              stepObj.isBits
+                ? `<div class="osi-bits-stream">⚡ 01011010 11001010 00110101 10101111 ⚡（實體層電子／光／無線電波訊號流）</div>`
+                : ""
+            }
+          </div>
+
+          <button type="button" class="osi-wire-bar ${stepObj.side === "wire" ? "active" : ""}" data-osi-jump="7" style="cursor:pointer;width:100%;" title="點擊查看跨網路中繼設備傳輸過程">
+            <span>💻 傳送端 L1</span>
+            <span>➔ 🔌 集線器(L1)</span>
+            <span>➔ 🔀 交換器(L2)</span>
+            <span>➔ 🌐 路由器(L3)</span>
+            <span>➔ 🖥️ 接收端 L1</span>
+          </button>
+        </div>
+
+        <div class="osi-tower">
+          <div class="osi-tower-title">🖥️ 接收端<br><span style="font-size:11px;color:#db2777;">⬆ 解封裝拆標頭</span></div>
+          ${receiverTowerHTML}
+        </div>
+      </div>
+
+      <div class="osi-layer-detail-card" style="--detail-color:${curLayerInfo.color}">
+        <div class="osi-detail-item">
+          <div class="osi-detail-label">📌 當前焦點層級（點擊左右層級可切換）</div>
+          <div class="osi-detail-val" style="color:${curLayerInfo.color}">第 ${curLayerInfo.layer} 層：${curLayerInfo.name} (${curLayerInfo.en}) · 口訣「${curLayerInfo.mnemonic}」</div>
+        </div>
+        <div class="osi-detail-item">
+          <div class="osi-detail-label">🛠️ 主要功能與職責</div>
+          <div class="osi-detail-val">${curLayerInfo.keyFunc}</div>
+        </div>
+        <div class="osi-detail-item">
+          <div class="osi-detail-label">📡 代表通訊協定／標準</div>
+          <div class="osi-detail-val">${curLayerInfo.protocols}</div>
+        </div>
+        <div class="osi-detail-item">
+          <div class="osi-detail-label">🖧 對應硬體設備 ＆ DoD 模型</div>
+          <div class="osi-detail-val">${curLayerInfo.devices}<br><span style="color:#2563eb;font-size:12px;">對應：${curLayerInfo.dodLayer}</span></div>
+        </div>
+      </div>
+
+      <div class="osi-mnemonic-box">
+        💡 <b>秒記口訣：</b>由上而下（7→1）<b>「應、達、會、輸、路、結、實」</b>（諧音：<b>英打會輸入結石</b>；英文：<i>All People Seem To Need Data Processing</i>）。<br>
+        🔹 <b>上 3 層（7 應用、6 表達、5 會議）</b>規範<b>軟體應用功能</b>；<b>下 4 層（4 傳輸、3 網路、2 資料連結、1 實體）</b>規範<b>資料傳輸與硬體設備</b>！
+      </div>
+    `;
+  } else if (osiSubTab === "compare") {
+    const rows = [7, 6, 5, 4, 3, 2, 1]
+      .map(lNum => {
+        const info = OSI_LAYERS_INFO[lNum];
+        return `
+          <div class="osi-cmp-row" style="border-left: 5px solid ${info.color}">
+            <div><span style="display:inline-block;padding:2px 7px;border-radius:6px;background:${info.color};color:#fff;font-size:11.5px;margin-right:4px;">L${lNum}</span><b>${info.name}</b><br><span style="font-size:11.5px;color:#64748b;">單位：${info.pdu}</span></div>
+            <div style="color:#1d4ed8;font-weight:800;">${info.dodLayer}</div>
+            <div>${info.protocols}</div>
+            <div style="color:#be185d;font-weight:800;">${info.devices}</div>
+          </div>
+        `;
+      })
+      .join("");
+
+    subBodyHTML = `
+      <div class="osi-mnemonic-box">
+        🎯 <b>統測三大必考對照重點：</b><br>
+        1️⃣ <b>DoD 四層對應</b>：DoD 應用層＝OSI 7~5 層；DoD 傳輸層＝OSI 第 4 層（TCP/UDP）；DoD 網路層＝OSI 第 3 層（IP/ICMP/ARP）；DoD 連結層＝OSI 2~1 層。<br>
+        2️⃣ <b>硬體設備對應</b>：<b>L1 實體層</b>＝中繼器、集線器、數據機；<b>L2 資料連結層</b>＝網路卡、交換器、橋接器；<b>L3 網路層</b>＝路由器、IP 分享器；<b>閘道器</b>＝可對應各層。<br>
+        3️⃣ <b>資料單位 (PDU)</b>：L4 傳輸層＝<b>區段 (Segment)</b>；L3 網路層＝<b>封包 (Packet)</b>；L2 資料連結層＝<b>訊框 (Frame，含標頭與標尾)</b>；L1 實體層＝<b>位元 (Bits)</b>。
+      </div>
+      <div class="osi-compare-table">
+        <div class="osi-cmp-row head">
+          <div>OSI 七層架構（與資料單位）</div>
+          <div>對應 DoD (TCP/IP) 模型</div>
+          <div>代表通訊協定／技術標準</div>
+          <div>對應網路設備</div>
+        </div>
+        ${rows}
+      </div>
+    `;
+  } else if (osiSubTab === "drill") {
+    const totalD = OSI_DRILL_QUESTIONS.length;
+    osiDrillIdx = Math.max(0, Math.min(totalD - 1, osiDrillIdx));
+    const dq = OSI_DRILL_QUESTIONS[osiDrillIdx];
+    const picked = osiDrillAnswers[osiDrillIdx];
+    const isAns = picked !== undefined;
+    const score = Object.entries(osiDrillAnswers).filter(([k, v]) => OSI_DRILL_QUESTIONS[Number(k)].ans === v).length;
+
+    subBodyHTML = `
+      <div class="quiz-banner">
+        <span>🎮 OSI 七層封裝、設備與 DoD 對照隨堂演練</span>
+        <span>已答對：${score} / ${totalD} 題</span>
+      </div>
+      <div class="section-stepper">
+        <div class="stepper-pills">
+          ${OSI_DRILL_QUESTIONS.map((_, idx) => {
+            const a = osiDrillAnswers[idx];
+            const mark = a === undefined ? "" : a === OSI_DRILL_QUESTIONS[idx].ans ? "✅ " : "❌ ";
+            return `<button type="button" class="step-pill ${idx === osiDrillIdx ? "active" : ""} ${a !== undefined ? "done" : ""}" data-osi-didx="${idx}">${mark}特訓 ${idx + 1}</button>`;
+          }).join("")}
+        </div>
+        <button type="button" class="step-pill" id="osi-drill-reset">🔄 重練</button>
+      </div>
+      <div class="quiz-item">
+        <div class="quiz-q">${dq.q}</div>
+        <div class="quiz-options">
+          ${dq.opts
+            .map((opt, oi) => {
+              let cls = "quiz-opt";
+              if (isAns) {
+                if (oi === dq.ans) cls += " correct";
+                else if (oi === picked) cls += " wrong";
+              }
+              return `<button type="button" class="${cls}" data-osi-dqi="${osiDrillIdx}" data-osi-doi="${oi}" ${isAns ? "disabled" : ""}>(${String.fromCharCode(65 + oi)}) ${opt}</button>`;
+            })
+            .join("")}
+        </div>
+        <div class="quiz-explain ${isAns ? "" : "hidden"}">💡 <b>解析：</b>${dq.exp}</div>
+        <div class="section-footer-nav">
+          <button type="button" class="candy-btn blue" id="osi-d-prev" ${osiDrillIdx === 0 ? "disabled style='opacity:0.4;cursor:default'" : ""}>⬅ 上一題</button>
+          <span style="font-size:14px;font-weight:900;color:#64748b;">第 ${osiDrillIdx + 1} / ${totalD} 題</span>
+          <button type="button" class="candy-btn green" id="osi-d-next" ${osiDrillIdx === totalD - 1 ? "disabled style='opacity:0.4;cursor:default'" : ""}>下一題 ➡</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="osi-lab-root" id="osi-lab-root">
+      <div class="osi-subtabs">
+        <button type="button" class="osi-subtab-btn ${osiSubTab === "encap" ? "active" : ""}" data-osi-sub="encap">🎬 封裝與解封裝互動動畫</button>
+        <button type="button" class="osi-subtab-btn ${osiSubTab === "compare" ? "active" : ""}" data-osi-sub="compare">🔗 DoD 四層＆硬體設備對照圖</button>
+        <button type="button" class="osi-subtab-btn ${osiSubTab === "drill" ? "active" : ""}" data-osi-sub="drill">🎮 OSI 七層快問快答 (${OSI_DRILL_QUESTIONS.length})</button>
+      </div>
+      ${subBodyHTML}
+    </div>
+  `;
+}
+
+function refreshOsiLabInPlace() {
+  const root = panelEl.querySelector("#osi-lab-root");
+  if (!root) return;
+  root.outerHTML = renderOsiLabHTML();
+  bindOsiLabEvents();
+}
+
+function bindOsiLabEvents() {
+  const root = panelEl.querySelector("#osi-lab-root");
+  if (!root) return;
+
+  root.querySelectorAll("[data-osi-sub]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playSfx("pop");
+      stopOsiAnimTimer();
+      osiSubTab = btn.dataset.osiSub;
+      refreshOsiLabInPlace();
+    });
+  });
+
+  const playBtn = root.querySelector("#osi-btn-play");
+  if (playBtn) {
+    playBtn.addEventListener("click", () => {
+      playSfx("pop");
+      if (osiPlaying) {
+        stopOsiAnimTimer();
+        refreshOsiLabInPlace();
+      } else {
+        if (osiStepIdx >= OSI_ANIM_STEPS.length - 1) {
+          osiStepIdx = 0;
+        }
+        startOsiAnimTimer();
+        refreshOsiLabInPlace();
+      }
+    });
+  }
+
+  const prevBtn = root.querySelector("#osi-btn-prev");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      stopOsiAnimTimer();
+      if (osiStepIdx > 0) {
+        playSfx("pop");
+        osiStepIdx--;
+        refreshOsiLabInPlace();
+      }
+    });
+  }
+
+  const nextBtn = root.querySelector("#osi-btn-next");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      stopOsiAnimTimer();
+      if (osiStepIdx < OSI_ANIM_STEPS.length - 1) {
+        playSfx("pop");
+        osiStepIdx++;
+        if (osiStepIdx === OSI_ANIM_STEPS.length - 1 && !hasRewardedOsiAnim) {
+          hasRewardedOsiAnim = true;
+          playSfx("fanfare");
+          rewardPlayer(20, 15);
+        }
+        refreshOsiLabInPlace();
+      }
+    });
+  }
+
+  const resetBtn = root.querySelector("#osi-btn-reset");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      playSfx("pop");
+      osiStepIdx = 0;
+      startOsiAnimTimer();
+      refreshOsiLabInPlace();
+    });
+  }
+
+  root.querySelectorAll("[data-osi-speed]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playSfx("pop");
+      osiSpeed = Number(btn.dataset.osiSpeed) || 1;
+      if (osiPlaying) {
+        startOsiAnimTimer();
+      }
+      refreshOsiLabInPlace();
+    });
+  });
+
+  root.querySelectorAll("[data-osi-jump]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playSfx("pop");
+      stopOsiAnimTimer();
+      osiStepIdx = Math.max(0, Math.min(OSI_ANIM_STEPS.length - 1, Number(btn.dataset.osiJump) || 0));
+      refreshOsiLabInPlace();
+    });
+  });
+
+  root.querySelectorAll("[data-osi-didx]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playSfx("pop");
+      osiDrillIdx = Number(btn.dataset.osiDidx) || 0;
+      refreshOsiLabInPlace();
+    });
+  });
+
+  const dPrev = root.querySelector("#osi-d-prev");
+  if (dPrev) {
+    dPrev.addEventListener("click", () => {
+      if (osiDrillIdx > 0) {
+        playSfx("pop");
+        osiDrillIdx--;
+        refreshOsiLabInPlace();
+      }
+    });
+  }
+
+  const dNext = root.querySelector("#osi-d-next");
+  if (dNext) {
+    dNext.addEventListener("click", () => {
+      if (osiDrillIdx < OSI_DRILL_QUESTIONS.length - 1) {
+        playSfx("pop");
+        osiDrillIdx++;
+        refreshOsiLabInPlace();
+      }
+    });
+  }
+
+  const dReset = root.querySelector("#osi-drill-reset");
+  if (dReset) {
+    dReset.addEventListener("click", () => {
+      playSfx("pop");
+      osiDrillAnswers = {};
+      osiDrillIdx = 0;
+      refreshOsiLabInPlace();
+    });
+  }
+
+  root.querySelectorAll("[data-osi-dqi]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const qi = Number(btn.dataset.osiDqi);
+      const oi = Number(btn.dataset.osiDoi);
+      if (osiDrillAnswers[qi] !== undefined) return;
+      osiDrillAnswers[qi] = oi;
+      if (oi === OSI_DRILL_QUESTIONS[qi].ans) {
+        playSfx("correct");
+        rewardPlayer(15, 10, e);
+      } else {
+        playSfx("wrong");
+      }
+      refreshOsiLabInPlace();
+    });
+  });
+}
+
 function renderPanel(chId) {
   const ch = chapters[chId];
   const meta = getIslandMeta(chId);
@@ -2389,15 +3164,32 @@ function renderPanel(chId) {
   const relLinks = COLLAB_LINKS.filter(l => l.a === chId || l.b === chId);
   const curStars = gameState.stars[chId] || 0;
 
+  if (chId !== 14 && activeTab === "osi") {
+    activeTab = "sections";
+  }
+  if (activeTab !== "osi") {
+    stopOsiAnimTimer();
+  }
+
   let bodyHTML = "";
-  if (activeTab === "sections") {
+  if (activeTab === "osi" && chId === 14) {
+    bodyHTML = renderOsiLabHTML();
+  } else if (activeTab === "sections") {
     const totalSec = ch.sections.length;
     activeSecIdx = Math.max(0, Math.min(totalSec - 1, activeSecIdx));
     const s = ch.sections[activeSecIdx];
     const key = `${chId}-${activeSecIdx}`;
     const isDone = !!gameState.readSections[key];
+    const osiBannerHTML =
+      chId === 14
+        ? `<div class="osi-cta-banner">
+            <div class="osi-cta-text">🗼 <b>OSI 七層協定互動說明動畫：</b>動態圖解「傳送端封裝加標頭 ➔ 實體訊號傳輸 ➔ 接收端解封裝拆標頭」與 DoD 四層對照！</div>
+            <button type="button" class="osi-cta-btn" id="btn-open-osi-anim">🎬 開啟 OSI 互動動畫 ➔</button>
+          </div>`
+        : "";
 
     bodyHTML = `
+      ${osiBannerHTML}
       <div class="section-stepper">
         <div class="stepper-pills">
           ${ch.sections
@@ -2511,8 +3303,8 @@ function renderPanel(chId) {
         return `
         <div class="link-card" data-goto="${otherId}">
           <div class="link-card-head">
-            <span>🌈 通往關卡 ${String(otherId).padStart(2, "0")}：${otherCh.icon} ${otherCh.title}</span>
-            <span>傳送 ➔</span>
+            <span>🚗 通往關卡 ${String(otherId).padStart(2, "0")}：${otherCh.icon} ${otherCh.title}</span>
+            <span>駕車前往 ➔</span>
           </div>
           <div class="link-card-desc">${l.desc}</div>
         </div>`;
@@ -2547,12 +3339,34 @@ function renderPanel(chId) {
     </div>
     <div class="panel-tabs">
       <button class="tab-btn ${activeTab === "sections" ? "active" : ""}" data-tab="sections">📖 知識寶箱 (${ch.sections.length})</button>
+      ${
+        chId === 14
+          ? `<button class="tab-btn osi-special-tab ${activeTab === "osi" ? "active" : ""}" data-tab="osi">🎬 OSI 七層動畫</button>`
+          : ""
+      }
       <button class="tab-btn ${activeTab === "terms" ? "active" : ""}" data-tab="terms">🃏 魔法圖鑑 (${ch.terms.length})</button>
       <button class="tab-btn ${activeTab === "quiz" ? "active" : ""}" data-tab="quiz">⚔️ 闖關挑戰 (${ch.quiz.length})</button>
-      <button class="tab-btn ${activeTab === "links" ? "active" : ""}" data-tab="links">🌈 彩虹橋 (${relLinks.length})</button>
+      <button class="tab-btn ${activeTab === "links" ? "active" : ""}" data-tab="links">🚗 跨區導航 (${relLinks.length})</button>
     </div>
     <div class="panel-body">${bodyHTML}</div>
   `;
+
+  const openOsiBtn = panelEl.querySelector("#btn-open-osi-anim");
+  if (openOsiBtn) {
+    openOsiBtn.addEventListener("click", () => {
+      playSfx("pop");
+      activeTab = "osi";
+      osiSubTab = "encap";
+      osiStepIdx = 0;
+      renderPanel(chId);
+      startOsiAnimTimer();
+      refreshOsiLabInPlace();
+    });
+  }
+
+  if (activeTab === "osi" && chId === 14) {
+    bindOsiLabEvents();
+  }
 
   const sizeBtn = panelEl.querySelector("#panel-size-toggle");
   const dragHandle = panelEl.querySelector("#panel-drag-handle");
