@@ -2013,51 +2013,66 @@ function getBuildingPlazaPos(chId, slotIdx = 0) {
   return new THREE.Vector3(bx + ox, 0.48, bz + 4.35);
 }
 
+function makeWaypoint(x, y, z, onRoad) {
+  return {
+    x: Number(x) || 0,
+    y: Number(y) || 0,
+    z: Number(z) || 0,
+    onRoad: Boolean(onRoad)
+  };
+}
+
 // 規劃從起點到終點建築的「模擬城市棋盤道路導航路徑」（100% 沿柏油馬路與路口轉彎，絕不直線穿越建築物）
 function buildRoadWaypoints(startVec, destVec) {
-  const distTotal = Math.hypot(destVec.x - startVec.x, destVec.z - startVec.z);
+  const sx = Number(startVec.x) || 0;
+  const sz = Number(startVec.z) || 0;
+  const dx = Number(destVec.x) || 0;
+  const dz = Number(destVec.z) || 0;
+  const dy = Number(destVec.y) || 0.48;
+
+  const distTotal = Math.hypot(dx - sx, dz - sz);
   if (distTotal < 0.35) {
-    return [{ pos: destVec.clone(), onRoad: false }];
+    return [];
   }
 
-  const zRoad1 = nearestRoadCoord(startVec.z);
-  const zRoad2 = nearestRoadCoord(destVec.z);
+  const zRoad1 = nearestRoadCoord(sz);
+  const zRoad2 = nearestRoadCoord(dz);
   const pts = [];
 
   if (Math.abs(zRoad1 - zRoad2) < 0.5) {
     // 同一條東西向幹道：直接開上前方幹道，沿右行車道行駛至目標建築正門
-    const dirX = destVec.x >= startVec.x ? 1 : -1;
+    const dirX = dx >= sx ? 1 : -1;
     const laneZ = zRoad1 + (dirX > 0 ? 0.62 : -0.62);
-    pts.push({ pos: new THREE.Vector3(startVec.x, 0.16, laneZ), onRoad: true });
-    pts.push({ pos: new THREE.Vector3(destVec.x, 0.16, laneZ), onRoad: true });
+    pts.push(makeWaypoint(sx, 0.16, laneZ, true));
+    pts.push(makeWaypoint(dx, 0.16, laneZ, true));
   } else {
     // 不同東西向幹道：選出總路徑最短的南北向幹道 xRoad 進行十字路口垂直轉彎
     let bestXRoad = ROAD_COORDS[0];
     let bestCost = Infinity;
     for (const xr of ROAD_COORDS) {
-      const cost = Math.abs(startVec.x - xr) + Math.abs(destVec.x - xr);
+      const cost = Math.abs(sx - xr) + Math.abs(dx - xr);
       if (cost < bestCost) {
         bestCost = cost;
         bestXRoad = xr;
       }
     }
 
-    const dirX1 = bestXRoad >= startVec.x ? 1 : -1;
+    const dirX1 = bestXRoad >= sx ? 1 : -1;
     const laneZ1 = zRoad1 + (dirX1 > 0 ? 0.62 : -0.62);
 
     const dirZ = zRoad2 >= zRoad1 ? 1 : -1;
     const laneX = bestXRoad + (dirZ > 0 ? -0.62 : 0.62);
 
-    const dirX2 = destVec.x >= bestXRoad ? 1 : -1;
+    const dirX2 = dx >= bestXRoad ? 1 : -1;
     const laneZ2 = zRoad2 + (dirX2 > 0 ? 0.62 : -0.62);
 
-    pts.push({ pos: new THREE.Vector3(startVec.x, 0.16, laneZ1), onRoad: true });
-    pts.push({ pos: new THREE.Vector3(laneX, 0.16, laneZ1), onRoad: true });
-    pts.push({ pos: new THREE.Vector3(laneX, 0.16, laneZ2), onRoad: true });
-    pts.push({ pos: new THREE.Vector3(destVec.x, 0.16, laneZ2), onRoad: true });
+    pts.push(makeWaypoint(sx, 0.16, laneZ1, true));
+    pts.push(makeWaypoint(laneX, 0.16, laneZ1, true));
+    pts.push(makeWaypoint(laneX, 0.16, laneZ2, true));
+    pts.push(makeWaypoint(dx, 0.16, laneZ2, true));
   }
 
-  pts.push({ pos: destVec.clone(), onRoad: false });
+  pts.push(makeWaypoint(dx, dy, dz, false));
   return pts;
 }
 
@@ -2157,6 +2172,7 @@ const mascotGroup = new THREE.Group();
   charWrap.add(body, head, hair, glasses, cheekL, cheekR, arm);
   mascotGroup.add(charWrap);
   mascotGroup.userData.charWrap = charWrap;
+  mascotGroup.scale.setScalar(1.22);
 
   mascotGroup.traverse(o => {
     if (o.isMesh) {
@@ -2174,8 +2190,8 @@ const mascotState = {
   fromId: 1,
   toId: 2,
   curPos: initMascotPos.clone(),
-  waypoints: [],
-  pauseTimer: 2.0,
+  waypoints: buildRoadWaypoints(initMascotPos, getBuildingPlazaPos(2, 5)),
+  pauseTimer: 0.5,
   bubbleTimer: 0
 };
 
@@ -2228,6 +2244,30 @@ function starString(count) {
   return "⭐".repeat(n) + "☆".repeat(3 - n);
 }
 
+let playerCurrentChId = 1;
+let isFollowingSelfDrive = false;
+let pendingPanelChId = null;
+
+function flyToBuilding(chId, duration = 820) {
+  const group = islandGroups.get(chId);
+  if (!group) return;
+  const p = group.position;
+  const baseY = group.userData.baseY ?? p.y;
+  const w = window.innerWidth;
+  let camOffset, targetOffset;
+  if (w <= 860) {
+    camOffset = new THREE.Vector3(p.x, baseY + 21, p.z + 25);
+    targetOffset = new THREE.Vector3(p.x, baseY - 4.2, p.z);
+  } else if (w <= 1180) {
+    camOffset = new THREE.Vector3(p.x + 6.5, baseY + 17, p.z + 22);
+    targetOffset = new THREE.Vector3(p.x + 4.2, baseY + 0.5, p.z);
+  } else {
+    camOffset = new THREE.Vector3(p.x + 8, baseY + 16, p.z + 21);
+    targetOffset = new THREE.Vector3(p.x + 3.2, baseY + 0.6, p.z);
+  }
+  flyTo(camOffset, targetOffset, duration);
+}
+
 function selectIsland(chId, initialTab = null) {
   if (initialTab) activeTab = initialTab;
   const firstVisit = !gameState.visited[chId];
@@ -2236,46 +2276,61 @@ function selectIsland(chId, initialTab = null) {
     activeQuizIdx = 0;
     quizAnswers = {};
   }
+
+  // 若正在駕車前往同一棟建築時再次點擊，則直接抵達並開啟面板
+  const existingSelf = peer3DEntities.get(gameState.myId);
+  const skipDrive =
+    isFollowingSelfDrive &&
+    pendingPanelChId === chId &&
+    existingSelf &&
+    existingSelf.isDriving;
+
   selectedId = chId;
+  playerCurrentChId = chId;
   gameState.visited[chId] = true;
 
   if (firstVisit) {
     rewardPlayer(10, 5);
-    broadcastActivity(`登上了 Ch.${chId}《${chapters[chId]?.title || ""}》展開探索！`, `探索 Ch.${chId} 知識寶箱`, chId);
+    broadcastActivity(`駕車抵達了 Ch.${chId}《${chapters[chId]?.title || ""}》展開探索！`, `探索 Ch.${chId} 知識寶箱`, chId);
   } else {
     saveGame();
     broadcastActivity(null, `正在研讀 Ch.${chId}`, chId);
   }
 
-  const group = islandGroups.get(chId);
-  if (group) {
-    const p = group.position;
-    const baseY = group.userData.baseY ?? p.y;
-    const w = window.innerWidth;
-    let camOffset, targetOffset;
-    if (w <= 860) {
-      // 手機與直向平板（底部抽屜式面板）：鏡頭拉高並將浮空島置於畫面上半部
-      camOffset = new THREE.Vector3(p.x, baseY + 21, p.z + 25);
-      targetOffset = new THREE.Vector3(p.x, baseY - 4.2, p.z);
-    } else if (w <= 1180) {
-      // 橫向平板（右側精巧面板）：浮空島往左偏，留出右側空間不重疊
-      camOffset = new THREE.Vector3(p.x + 6.5, baseY + 17, p.z + 22);
-      targetOffset = new THREE.Vector3(p.x + 4.2, baseY + 0.5, p.z);
-    } else {
-      camOffset = new THREE.Vector3(p.x + 8, baseY + 16, p.z + 21);
-      targetOffset = new THREE.Vector3(p.x + 3.2, baseY + 0.6, p.z);
-    }
-    flyTo(camOffset, targetOffset, 820);
-  }
-
   updateIslandHighlights();
   renderLiveTickerUI();
-  renderPanel(chId);
-  panelEl.classList.remove("hidden");
+
+  const selfEnt = peer3DEntities.get(gameState.myId);
+  if (skipDrive && selfEnt) {
+    const dest = getBuildingPlazaPos(chId, 0);
+    selfEnt.curPos.copy(dest);
+    selfEnt.targetPos.copy(dest);
+    selfEnt.waypoints = [];
+    selfEnt.isDriving = false;
+    renderPeerTagContent(selfEnt);
+  }
+
+  if (selfEnt && selfEnt.isDriving && selfEnt.waypoints && selfEnt.waypoints.length > 0 && showPeers) {
+    // 玩家從目前所在建築駕車沿道路網前往目標建築：先隱藏右側面板，讓鏡頭跟隨玩家的敞篷車沿馬路移動，抵達後自動開啟面板
+    isFollowingSelfDrive = true;
+    pendingPanelChId = chId;
+    camAnim = null;
+    panelEl.classList.add("hidden");
+    document.body.classList.remove("panel-open");
+  } else {
+    isFollowingSelfDrive = false;
+    pendingPanelChId = null;
+    flyToBuilding(chId, 820);
+    renderPanel(chId);
+    panelEl.classList.remove("hidden");
+    document.body.classList.add("panel-open");
+  }
 }
 
 function closePanel() {
   selectedId = null;
+  isFollowingSelfDrive = false;
+  pendingPanelChId = null;
   panelEl.classList.remove("fullscreen");
   panelEl.classList.add("hidden");
   updateIslandHighlights();
@@ -3695,6 +3750,7 @@ function createPeerPawnMesh(hexColor, avatarEmoji = "🐣") {
   }
 
   charBodyGroup.add(headGroup);
+  g.scale.setScalar(1.22);
 
   // 儲存可動關節與敞篷車群組供動畫迴圈切換駕駛/步行狀態
   g.userData.rig = {
@@ -3919,14 +3975,15 @@ function renderLiveTickerUI() {
   }
 
   // 建立玩家自己的 3D 角色資料（當切換主題建築時，玩家角色也會搭乘專屬敞篷車沿道路行駛過去！）
+  const activePlayerChId = selectedId || playerCurrentChId || 1;
   const mySelfPeer = {
     id: gameState.myId,
     name: `${gameState.myName} (我)`,
     avatar: myInfo.avatar,
     lv: myInfo.lv,
     hex: 0xf43f5e,
-    chId: selectedId || 1,
-    action: myCurrentAction || `探索 Ch.${String(selectedId || 1).padStart(2, "0")}`,
+    chId: activePlayerChId,
+    action: myCurrentAction || `探索 Ch.${String(activePlayerChId).padStart(2, "0")}`,
     isSelf: true
   };
   const all3DPeers = [mySelfPeer, ...peers];
@@ -4128,12 +4185,13 @@ setInterval(() => {
 
 setInterval(() => {
   const ai = aiClassmates[Math.floor(Math.random() * aiClassmates.length)];
-  const nextCh = Math.floor(Math.random() * 15) + 1;
+  let nextCh = Math.floor(Math.random() * 15) + 1;
+  if (nextCh === ai.chId) nextCh = (nextCh % 15) + 1;
   const chObj = chapters[nextCh] || { title: `第 ${nextCh} 章` };
   const acts = [
-    { act: `研讀 Ch.${nextCh} 重點`, msg: `前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》研讀重點寶箱 📖` },
-    { act: `挑戰 Ch.${nextCh} 測驗`, msg: `在 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》答對題目獲得 ⭐！` },
-    { act: `收集 Ch.${nextCh} 圖鑑`, msg: `在 Ch.${String(nextCh).padStart(2, "0")} 收集了魔法小辭典卡牌 🃏` }
+    { act: `研讀 Ch.${nextCh} 重點`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》研讀重點寶箱 📖` },
+    { act: `挑戰 Ch.${nextCh} 測驗`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")}《${chObj.title}》答對題目獲得 ⭐！` },
+    { act: `收集 Ch.${nextCh} 圖鑑`, msg: `駕車前往 Ch.${String(nextCh).padStart(2, "0")} 收集了魔法小辭典卡牌 🃏` }
   ];
   const pick = acts[Math.floor(Math.random() * acts.length)];
   ai.chId = nextCh;
@@ -4144,7 +4202,7 @@ setInterval(() => {
     chId: nextCh
   });
   renderLiveTickerUI();
-}, 6500);
+}, 5200);
 
 renderLiveTickerUI();
 
@@ -4704,20 +4762,47 @@ function animate() {
         const dx = wp.x - ent.curPos.x;
         const dz = wp.z - ent.curPos.z;
         const dist = Math.hypot(dx, dz);
-        const speed = onRoadNow ? 10.5 : 4.5;
+        const isSelf = Boolean(ent.peerData && ent.peerData.isSelf);
+        const speed = isSelf ? (onRoadNow ? 18.5 : 8.5) : (onRoadNow ? 9.2 : 4.5);
         const step = speed * dt;
         isMoving = true;
 
         if (dist <= step) {
           ent.curPos.set(wp.x, wp.y, wp.z);
           ent.waypoints.shift();
-          if (ent.waypoints.length === 0 && ent.isDriving) {
+          if (ent.waypoints.length === 0) {
             ent.isDriving = false;
             renderPeerTagContent(ent);
+            if (isSelf && isFollowingSelfDrive) {
+              isFollowingSelfDrive = false;
+              const arriveCh = pendingPanelChId;
+              pendingPanelChId = null;
+              if (arriveCh && selectedId === arriveCh) {
+                flyToBuilding(arriveCh, 580);
+                renderPanel(arriveCh);
+                panelEl.classList.remove("hidden");
+                document.body.classList.add("panel-open");
+              }
+            }
           }
         } else {
           ent.curPos.x += (dx / dist) * step;
           ent.curPos.z += (dz / dist) * step;
+        }
+
+        // 當玩家點擊建築並駕車沿道路前往時，鏡頭平滑跟隨玩家的敞篷車呈現完整移動過程
+        if (isSelf && isFollowingSelfDrive && ent.waypoints.length > 0) {
+          const followTargetX = ent.curPos.x;
+          const followTargetZ = ent.curPos.z;
+          const followCamX = ent.curPos.x + 8.5;
+          const followCamY = 17.5;
+          const followCamZ = ent.curPos.z + 21.0;
+          controls.target.x += (followTargetX - controls.target.x) * Math.min(1, dt * 8.5);
+          controls.target.y += (0.8 - controls.target.y) * Math.min(1, dt * 8.5);
+          controls.target.z += (followTargetZ - controls.target.z) * Math.min(1, dt * 8.5);
+          camera.position.x += (followCamX - camera.position.x) * Math.min(1, dt * 5.8);
+          camera.position.y += (followCamY - camera.position.y) * Math.min(1, dt * 5.8);
+          camera.position.z += (followCamZ - camera.position.z) * Math.min(1, dt * 5.8);
         }
       } else {
         ent.targetPos.y = 0.52;
